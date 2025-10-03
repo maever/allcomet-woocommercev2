@@ -176,7 +176,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         ];
 
         foreach ($required_fields as $field => $message) {
-            if (empty($_POST[$field])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $value = $this->get_posted_payment_field($field);
+
+            if ('' === trim($value)) {
                 wc_add_notice($message, 'error');
 
                 return false;
@@ -218,9 +220,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             ];
         }
 
-        $card_number = isset($_POST['allcomet_card_number']) ? preg_replace('/\D+/', '', wp_unslash($_POST['allcomet_card_number'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-        $expiry_month = isset($_POST['allcomet_expiry_month']) ? sanitize_text_field(wp_unslash($_POST['allcomet_expiry_month'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-        $expiry_year = isset($_POST['allcomet_expiry_year']) ? sanitize_text_field(wp_unslash($_POST['allcomet_expiry_year'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_number')) ?: '';
+        $expiry_month = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_month'));
+        $expiry_year = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_year'));
         $prefix = $card_number !== '' ? substr($card_number, 0, 5) : 'n/a';
 
         $logger = wc_get_logger();
@@ -254,6 +256,22 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'result'   => 'success',
             'redirect' => $this->get_return_url($order),
         ];
+    }
+
+    /**
+     * Retrieve a posted payment field from classic or Blocks checkout requests.
+     */
+    protected function get_posted_payment_field(string $key): string
+    {
+        if (isset($_POST['payment_method_data']) && is_array($_POST['payment_method_data']) && isset($_POST['payment_method_data'][$key])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return (string) wp_unslash($_POST['payment_method_data'][$key]); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        }
+
+        if (isset($_POST[$key])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return (string) wp_unslash($_POST[$key]); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        }
+
+        return '';
     }
 
     /**

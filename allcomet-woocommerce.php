@@ -71,6 +71,26 @@ function allcomet_gateway_register(array $gateways): array
 add_filter('woocommerce_payment_gateways', 'allcomet_gateway_register');
 
 /**
+ * Register the gateway integration for WooCommerce Blocks checkout.
+ */
+function allcomet_gateway_register_blocks_support(): void
+{
+    if (! class_exists('\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
+        return;
+    }
+
+    require_once ALLCOMET_GATEWAY_PLUGIN_PATH . 'includes/class-wc-gateway-allcomet-blocks.php';
+
+    add_action(
+        'woocommerce_blocks_payment_method_type_registration',
+        static function (\Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void {
+            $payment_method_registry->register(new WC_Gateway_Allcomet_Blocks());
+        }
+    );
+}
+add_action('woocommerce_blocks_loaded', 'allcomet_gateway_register_blocks_support');
+
+/**
  * Add custom action links on the plugins screen.
  *
  * @param string[] $links
