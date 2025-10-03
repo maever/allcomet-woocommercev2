@@ -163,21 +163,20 @@
         );
     };
 
-    const render = (props) => {
-        return createElement(
+    const PaymentMethodContent = (props) =>
+        createElement(
             Fragment,
             {},
             description ? createElement('p', { className: 'wc-block-allcomet-description' }, description) : null,
             createElement(PaymentFields, props)
         );
-    };
 
     registerPaymentMethod({
         name: 'allcomet',
         label,
         ariaLabel: label,
-        content: render,
-        edit: render,
+        content: createElement(PaymentMethodContent),
+        edit: createElement(PaymentMethodContent),
         canMakePayment: () => true,
         supports: {
             features: settings.supports || ['products'],
