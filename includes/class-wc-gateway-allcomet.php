@@ -133,7 +133,34 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             echo wpautop(wp_kses_post($this->description));
         }
 
-        // Additional custom fields would be output here when integrating with the AllComet API.
+        $posted_card    = isset($_POST['allcomet_card_number']) ? wp_unslash($_POST['allcomet_card_number']) : '';
+        $posted_month   = isset($_POST['allcomet_expiry_month']) ? wp_unslash($_POST['allcomet_expiry_month']) : '';
+        $posted_year    = isset($_POST['allcomet_expiry_year']) ? wp_unslash($_POST['allcomet_expiry_year']) : '';
+        $posted_cvc     = isset($_POST['allcomet_card_cvc']) ? wp_unslash($_POST['allcomet_card_cvc']) : '';
+
+        echo '<fieldset id="wc-allcomet-cc-form" class="wc-credit-card-form wc-payment-form">';
+        echo '<p class="form-row form-row-wide">';
+        echo '<label for="allcomet_card_number">' . esc_html__('Card number', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<input id="allcomet_card_number" name="allcomet_card_number" type="text" autocomplete="cc-number" placeholder="•••• •••• •••• ••••" value="' . esc_attr($posted_card) . '" />';
+        echo '</p>';
+
+        echo '<style>#wc-allcomet-cc-form .allcomet-expiry-group{display:flex;gap:8px}#wc-allcomet-cc-form .allcomet-expiry-group .input-text{flex:1}#wc-allcomet-cc-form .allcomet-cvc-field input{max-width:140px}</style>';
+
+        echo '<p class="form-row form-row-first allcomet-expiry-field">';
+        echo '<label for="allcomet_expiry_month">' . esc_html__('Expiry', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<span class="allcomet-expiry-group">';
+        echo '<input id="allcomet_expiry_month" class="input-text" name="allcomet_expiry_month" type="text" autocomplete="cc-exp-month" placeholder="MM" value="' . esc_attr($posted_month) . '" />';
+        echo '<input id="allcomet_expiry_year" class="input-text" name="allcomet_expiry_year" type="text" autocomplete="cc-exp-year" placeholder="YYYY" value="' . esc_attr($posted_year) . '" />';
+        echo '</span>';
+        echo '</p>';
+
+        echo '<p class="form-row form-row-last allcomet-cvc-field">';
+        echo '<label for="allcomet_card_cvc">' . esc_html__('CVC', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<input id="allcomet_card_cvc" name="allcomet_card_cvc" type="password" autocomplete="cc-csc" placeholder="CVC" value="' . esc_attr($posted_cvc) . '" />';
+        echo '</p>';
+
+        echo '<div class="clear"></div>';
+        echo '</fieldset>';
     }
 
     /**
@@ -141,7 +168,21 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
      */
     public function validate_fields(): bool
     {
-        // Placeholder for field-level validation when collecting extra checkout data.
+        $required_fields = [
+            'allcomet_card_number'   => __('Please enter your card number.', 'allcomet-woocommerce'),
+            'allcomet_expiry_month'  => __('Please enter the card expiry month.', 'allcomet-woocommerce'),
+            'allcomet_expiry_year'   => __('Please enter the card expiry year.', 'allcomet-woocommerce'),
+            'allcomet_card_cvc'      => __('Please enter the card CVC.', 'allcomet-woocommerce'),
+        ];
+
+        foreach ($required_fields as $field => $message) {
+            if (empty($_POST[$field])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+                wc_add_notice($message, 'error');
+
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -176,6 +217,23 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
                 'redirect' => '',
             ];
         }
+
+        $card_number = isset($_POST['allcomet_card_number']) ? preg_replace('/\D+/', '', wp_unslash($_POST['allcomet_card_number'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $expiry_month = isset($_POST['allcomet_expiry_month']) ? sanitize_text_field(wp_unslash($_POST['allcomet_expiry_month'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $expiry_year = isset($_POST['allcomet_expiry_year']) ? sanitize_text_field(wp_unslash($_POST['allcomet_expiry_year'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $prefix = $card_number !== '' ? substr($card_number, 0, 5) : 'n/a';
+
+        $logger = wc_get_logger();
+        $logger->debug(
+            sprintf(
+                '[%s] Checkout initiated. Card prefix: %s, Expiry: %s/%s',
+                gmdate('c'),
+                $prefix,
+                $expiry_month !== '' ? $expiry_month : 'n/a',
+                $expiry_year !== '' ? $expiry_year : 'n/a'
+            ),
+            ['source' => $this->id]
+        );
 
         $credentials = $this->get_active_credentials();
         $mode_label = $credentials['mode'] === 'test'
