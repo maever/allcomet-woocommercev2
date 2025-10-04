@@ -168,6 +168,8 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
      */
     public function validate_fields(): bool
     {
+        $this->log_checkout_snapshot('Validation snapshot');
+
         $required_fields = [
             'allcomet_card_number'   => __('Please enter your card number.', 'allcomet-woocommerce'),
             'allcomet_expiry_month'  => __('Please enter the card expiry month.', 'allcomet-woocommerce'),
@@ -220,22 +222,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             ];
         }
 
-        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_number')) ?: '';
-        $expiry_month = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_month'));
-        $expiry_year = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_year'));
-        $prefix = $card_number !== '' ? substr($card_number, 0, 5) : 'n/a';
-
-        $logger = wc_get_logger();
-        $logger->debug(
-            sprintf(
-                '[%s] Checkout initiated. Card prefix: %s, Expiry: %s/%s',
-                gmdate('c'),
-                $prefix,
-                $expiry_month !== '' ? $expiry_month : 'n/a',
-                $expiry_year !== '' ? $expiry_year : 'n/a'
-            ),
-            ['source' => $this->id]
-        );
+        $this->log_checkout_snapshot('Checkout initiated');
 
         $credentials = $this->get_active_credentials();
         $mode_label = $credentials['mode'] === 'test'
@@ -318,5 +305,31 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'secret_key'  => $this->live_secret_key,
             'mode'        => 'live',
         ];
+    }
+
+    /**
+     * Write a sanitized snapshot of the checkout payload to the WooCommerce debug log.
+     */
+    protected function log_checkout_snapshot(string $context): void
+    {
+        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_number')) ?: '';
+        $expiry_month = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_month'));
+        $expiry_year = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_year'));
+
+        $prefix = $card_number !== '' ? substr($card_number, 0, 5) : 'n/a';
+        $expiry_month = $expiry_month !== '' ? $expiry_month : 'n/a';
+        $expiry_year = $expiry_year !== '' ? $expiry_year : 'n/a';
+
+        wc_get_logger()->debug(
+            sprintf(
+                '[%s] %s. Card prefix: %s, Expiry: %s/%s',
+                gmdate('c'),
+                $context,
+                $prefix,
+                $expiry_month,
+                $expiry_year
+            ),
+            ['source' => $this->id]
+        );
     }
 }
