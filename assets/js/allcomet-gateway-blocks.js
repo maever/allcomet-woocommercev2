@@ -14,6 +14,7 @@
 
     const errorMessages = Object.assign(
         {
+            cardHolder: __('Please enter the card holder name.', 'allcomet-woocommerce'),
             cardNumber: __('Please enter your card number.', 'allcomet-woocommerce'),
             expiryMonth: __('Please enter the card expiry month.', 'allcomet-woocommerce'),
             expiryYear: __('Please enter the card expiry year.', 'allcomet-woocommerce'),
@@ -47,6 +48,8 @@
         switch (id) {
             case 'allcomet-card-number':
                 return 'cc-number';
+            case 'allcomet-card-holder':
+                return 'cc-name';
             case 'allcomet-expiry-month':
                 return 'cc-exp-month';
             case 'allcomet-expiry-year':
@@ -84,6 +87,7 @@
     const PaymentFields = (props) => {
         const { eventRegistration, emitResponse } = props;
         const responseTypes = (emitResponse && emitResponse.responseTypes) ? emitResponse.responseTypes : { ERROR: 'ERROR', SUCCESS: 'SUCCESS' };
+        const [cardHolder, setCardHolder] = useState('');
         const [cardNumber, setCardNumber] = useState('');
         const [expiryMonth, setExpiryMonth] = useState('');
         const [expiryYear, setExpiryYear] = useState('');
@@ -116,6 +120,9 @@
             const unsubscribe = eventRegistration.onPaymentProcessing(() => {
                 const errors = [];
 
+                if (! cardHolder) {
+                    errors.push(errorMessages.cardHolder);
+                }
                 if (! cardNumber) {
                     errors.push(errorMessages.cardNumber);
                 }
@@ -145,6 +152,7 @@
                     type: responseTypes.SUCCESS,
                     meta: {
                         paymentMethodData: {
+                            allcomet_card_holder: cardHolder,
                             allcomet_card_number: cardNumber,
                             allcomet_expiry_month: expiryMonth,
                             allcomet_expiry_year: expiryYear,
@@ -159,11 +167,18 @@
                     unsubscribe();
                 }
             };
-        }, [cardNumber, expiryMonth, expiryYear, cvc, eventRegistration, emitResponse]);
+        }, [cardHolder, cardNumber, expiryMonth, expiryYear, cvc, eventRegistration, emitResponse]);
 
         return createElement(
             Fragment,
             {},
+            Field({
+                id: 'allcomet-card-holder',
+                labelText: __('Card holder name', 'allcomet-woocommerce'),
+                value: cardHolder,
+                onChange: setCardHolder,
+                placeholder: __('Jane Doe', 'allcomet-woocommerce'),
+            }),
             Field({
                 id: 'allcomet-card-number',
                 labelText: __('Card number', 'allcomet-woocommerce'),

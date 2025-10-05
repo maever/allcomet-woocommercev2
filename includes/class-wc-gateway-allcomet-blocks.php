@@ -89,6 +89,7 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
             'description' => $this->get_setting('description'),
             'supports'    => ['products'],
             'i18n'        => [
+                'cardHolder'  => __('Please enter the card holder name.', 'allcomet-woocommerce'),
                 'cardNumber'  => __('Please enter your card number.', 'allcomet-woocommerce'),
                 'expiryMonth' => __('Please enter the card expiry month.', 'allcomet-woocommerce'),
                 'expiryYear'  => __('Please enter the card expiry year.', 'allcomet-woocommerce'),
