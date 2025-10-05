@@ -233,19 +233,139 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $this->log_checkout_snapshot('Checkout initiated');
 
         $credentials = $this->get_active_credentials();
-        $mode_label = $credentials['mode'] === 'test'
-            ? __('sandbox', 'allcomet-woocommerce')
-            : __('production', 'allcomet-woocommerce');
+        $endpoint = 'https://api.thelinemall.com/apiv2/pay';
 
-        // TODO: Replace with live request to AllComet API using $credentials.
+        $currency_map = [
+            'USD' => '1',
+            'EUR' => '2',
+            'RMB' => '3',
+            'GBP' => '4',
+            'HKD' => '5',
+            'JPY' => '6',
+            'AUD' => '7',
+            'NOK' => '8',
+            'CAD' => '11',
+            'DKK' => '12',
+            'SEK' => '13',
+            'TWD' => '14',
+        ];
+
+        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_number')) ?: '';
+        $shipping_phone = '';
+        if (method_exists($order, 'get_shipping_phone')) {
+            $shipping_phone = (string) $order->get_shipping_phone();
+        }
+        $request_args = [
+            'merNo'             => $credentials['merchant_id'],
+            'amount'            => number_format((float) $order->get_total(), 2, '.', ''),
+            'billNo'            => substr($order->get_order_key(), 0, 30),
+            'currency'          => $currency_map[$order->get_currency()] ?? $order->get_currency(),
+            'returnURL'         => $this->get_return_url($order),
+            'notifyUrl'         => home_url('/wc-api/allcomet'),
+            'tradeUrl'          => home_url('/'),
+            'lastName'          => substr(sanitize_text_field($order->get_billing_last_name()), 0, 30),
+            'firstName'         => substr(sanitize_text_field($order->get_billing_first_name()), 0, 60),
+            'country'           => strtoupper((string) $order->get_billing_country()),
+            'state'             => sanitize_text_field($order->get_billing_state()),
+            'city'              => sanitize_text_field($order->get_billing_city()),
+            'address'           => trim($order->get_billing_address_1() . ' ' . $order->get_billing_address_2()),
+            'zipCode'           => sanitize_text_field($order->get_billing_postcode()),
+            'email'             => sanitize_email($order->get_billing_email()),
+            'phone'             => sanitize_text_field($order->get_billing_phone()),
+            'cardNum'           => $card_number,
+            'year'              => substr(preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_expiry_year')), -4),
+            'month'             => str_pad(preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_expiry_month')), 2, '0', STR_PAD_LEFT),
+            'cvv2'              => preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_cvc')),
+            'productInfo'       => wp_json_encode($order->get_items() ? wp_list_pluck($order->get_items(), 'name') : ['Order #' . $order->get_id()]),
+            'ip'                => WC_Geolocation::get_ip_address(),
+            'dataTime'          => gmdate('YmdHis'),
+            'shippingFirstName' => substr(sanitize_text_field($order->get_shipping_first_name()), 0, 60),
+            'shippingLastName'  => substr(sanitize_text_field($order->get_shipping_last_name()), 0, 30),
+            'shippingCountry'   => strtoupper((string) $order->get_shipping_country()),
+            'shippingState'     => sanitize_text_field($order->get_shipping_state()),
+            'shippingCity'      => sanitize_text_field($order->get_shipping_city()),
+            'shippingAddress'   => trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2()),
+            'shippingZipCode'   => sanitize_text_field($order->get_shipping_postcode()),
+            'shippingEmail'     => sanitize_email($order->get_billing_email()),
+            'shippingPhone'     => sanitize_text_field($shipping_phone ?: $order->get_billing_phone()),
+            'isThreeDPay'       => 'N',
+            'language'          => 'EN',
+        ];
+
+        $sign_payload = $request_args;
+        ksort($sign_payload);
+        $sign_pairs = [];
+        foreach ($sign_payload as $key => $value) {
+            $sign_pairs[] = $key . '=' . $value;
+        }
+        $signature_base = implode('&', $sign_pairs) . '&key=' . $credentials['secret_key'];
+        $request_args['md5Info'] = strtoupper(md5($signature_base));
+
+        /**
+         * Allow automated tests to override the final request payload before dispatch.
+         */
+        $request_args = apply_filters('wc_allcomet_payment_request_args', $request_args, $order);
+
+        $response = wp_remote_post(
+            apply_filters('wc_allcomet_payment_endpoint', $endpoint, $order, $request_args),
+            [
+                'timeout' => 60,
+                'body'    => $request_args,
+            ]
+        );
+
+        if (is_wp_error($response)) {
+            wc_get_logger()->error($response->get_error_message(), ['source' => $this->id]);
+            wc_add_notice(__('Payment error: please try again or use a different card.', 'allcomet-woocommerce'), 'error');
+
+            return [
+                'result'   => 'failure',
+                'redirect' => '',
+            ];
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $parsed_body = json_decode($body, true);
+
+        if (! is_array($parsed_body)) {
+            parse_str($body, $parsed_body);
+        }
+
+        $safe_log_data = array_intersect_key(
+            (array) $parsed_body,
+            array_flip(['code', 'message', 'orderNo', 'billNo'])
+        );
+        wc_get_logger()->info('AllComet response: ' . wp_json_encode($safe_log_data), ['source' => $this->id]);
+
+        /**
+         * Surface responses to automated tests and extensions.
+         */
+        do_action('wc_allcomet_payment_response', $parsed_body, $order);
+
+        if (! isset($parsed_body['code']) || 'P0001' !== $parsed_body['code']) {
+            $message = isset($parsed_body['message']) ? wp_strip_all_tags((string) $parsed_body['message']) : __('Unable to process the payment with AllComet.', 'allcomet-woocommerce');
+            wc_add_notice($message, 'error');
+
+            return [
+                'result'   => 'failure',
+                'redirect' => '',
+            ];
+        }
+
+        $transaction_ref = isset($parsed_body['orderNo']) ? sanitize_text_field((string) $parsed_body['orderNo']) : '';
+        if ('' !== $transaction_ref) {
+            $order->update_meta_data('_allcomet_transaction_ref', $transaction_ref);
+        }
+
         $order->add_order_note(
             sprintf(
-                /* translators: %s: payment mode (sandbox or production). */
-                __('AllComet payment processed in %s mode (no API call).', 'allcomet-woocommerce'),
-                $mode_label
+                __('AllComet transaction approved. Reference: %s', 'allcomet-woocommerce'),
+                $transaction_ref ?: __('not provided', 'allcomet-woocommerce')
             )
         );
-        $order->payment_complete();
+
+        $order->payment_complete($transaction_ref);
+        $order->save();
 
         return [
             'result'   => 'success',
