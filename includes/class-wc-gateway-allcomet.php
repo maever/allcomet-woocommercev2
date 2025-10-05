@@ -344,7 +344,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         if (! isset($parsed_body['code']) || 'P0001' !== $parsed_body['code']) {
             $message = isset($parsed_body['message']) ? wp_strip_all_tags((string) $parsed_body['message']) : __('Unable to process the payment with AllComet.', 'allcomet-woocommerce');
-            wc_add_notice($message, 'error');
+            // Provide customers with a consistently formatted failure notice.
+            $formatted_notice = sprintf(__('Transaction failed, error: %s', 'allcomet-woocommerce'), $message);
+            wc_add_notice($formatted_notice, 'error');
 
             return [
                 'result'   => 'failure',
