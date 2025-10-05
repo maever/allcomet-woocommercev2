@@ -90,6 +90,29 @@
         const [cvc, setCvc] = useState('');
 
         useEffect(() => {
+            // Ensure the checkout specific styling for the expiry fields is only added once.
+            if (typeof document !== 'undefined' && ! document.getElementById('allcomet-block-styles')) {
+                const checkoutContainer = document.querySelector('.wc-block-checkout');
+
+                if (checkoutContainer) {
+                    const style = document.createElement('style');
+                    style.id = 'allcomet-block-styles';
+                    style.textContent = `
+                        .wc-block-checkout .wc-block-components-field-group.allcomet-expiry-group {
+                            display: flex;
+                            gap: 1rem;
+                            flex-wrap: wrap;
+                        }
+
+                        .wc-block-checkout .wc-block-components-field-group.allcomet-expiry-group > .wc-block-components-field {
+                            flex: 1 1 0;
+                        }
+                    `;
+
+                    checkoutContainer.appendChild(style);
+                }
+            }
+
             const unsubscribe = eventRegistration.onPaymentProcessing(() => {
                 const errors = [];
 
