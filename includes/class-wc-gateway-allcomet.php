@@ -133,12 +133,19 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             echo wpautop(wp_kses_post($this->description));
         }
 
+        $posted_holder  = isset($_POST['allcomet_card_holder']) ? wp_unslash($_POST['allcomet_card_holder']) : '';
         $posted_card    = isset($_POST['allcomet_card_number']) ? wp_unslash($_POST['allcomet_card_number']) : '';
         $posted_month   = isset($_POST['allcomet_expiry_month']) ? wp_unslash($_POST['allcomet_expiry_month']) : '';
         $posted_year    = isset($_POST['allcomet_expiry_year']) ? wp_unslash($_POST['allcomet_expiry_year']) : '';
         $posted_cvc     = isset($_POST['allcomet_card_cvc']) ? wp_unslash($_POST['allcomet_card_cvc']) : '';
 
         echo '<fieldset id="wc-allcomet-cc-form" class="wc-credit-card-form wc-payment-form">';
+        // Persist the card holder for both classic checkout and Blocks submissions.
+        echo '<p class="form-row form-row-wide">';
+        echo '<label for="allcomet_card_holder">' . esc_html__('Card holder name', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<input id="allcomet_card_holder" name="allcomet_card_holder" type="text" autocomplete="cc-name" placeholder="' . esc_attr__('Jane Doe', 'allcomet-woocommerce') . '" value="' . esc_attr($posted_holder) . '" />';
+        echo '</p>';
+
         echo '<p class="form-row form-row-wide">';
         echo '<label for="allcomet_card_number">' . esc_html__('Card number', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
         echo '<input id="allcomet_card_number" name="allcomet_card_number" type="text" autocomplete="cc-number" placeholder="•••• •••• •••• ••••" value="' . esc_attr($posted_card) . '" />';
@@ -171,6 +178,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $this->log_checkout_snapshot('Validation snapshot');
 
         $required_fields = [
+            'allcomet_card_holder'   => __('Please enter the card holder name.', 'allcomet-woocommerce'),
             'allcomet_card_number'   => __('Please enter your card number.', 'allcomet-woocommerce'),
             'allcomet_expiry_month'  => __('Please enter the card expiry month.', 'allcomet-woocommerce'),
             'allcomet_expiry_year'   => __('Please enter the card expiry year.', 'allcomet-woocommerce'),
