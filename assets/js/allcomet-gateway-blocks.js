@@ -117,13 +117,16 @@
                     };
                 }
 
+                // The Blocks API expects additional payment data under a meta key.
                 return {
                     type: responseTypes.SUCCESS,
-                    paymentMethodData: {
-                        allcomet_card_number: cardNumber,
-                        allcomet_expiry_month: expiryMonth,
-                        allcomet_expiry_year: expiryYear,
-                        allcomet_card_cvc: cvc,
+                    meta: {
+                        paymentMethodData: {
+                            allcomet_card_number: cardNumber,
+                            allcomet_expiry_month: expiryMonth,
+                            allcomet_expiry_year: expiryYear,
+                            allcomet_card_cvc: cvc,
+                        },
                     },
                 };
             });
