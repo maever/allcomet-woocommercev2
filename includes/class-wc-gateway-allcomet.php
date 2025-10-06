@@ -313,12 +313,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'language'          => 'EN',
         ];
 
-        $sign_payload = $request_args;
-        ksort($sign_payload);
-        // API section 1.6 requires signing the URL-encoded payload prior to submission.
-        $signature_query = http_build_query($sign_payload, '', '&');
-        $signature_base  = $signature_query . '&key=' . $credentials['secret_key'];
-        $request_args['md5Info'] = strtoupper(md5($signature_base));
+        $request_args['md5Info'] = $this->build_signature($request_args, $credentials['secret_key']);
 
         /**
          * Allow automated tests to override the final request payload before dispatch.
@@ -350,22 +345,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             parse_str($body, $parsed_body);
         }
 
-        $provided_signature = isset($parsed_body['md5Info']) ? strtoupper((string) $parsed_body['md5Info']) : '';
+        $provided_signature = isset($parsed_body['md5Info']) ? (string) $parsed_body['md5Info'] : '';
         $signature_payload  = is_array($parsed_body) ? $parsed_body : [];
-        unset($signature_payload['md5Info']);
-        ksort($signature_payload);
-        array_walk(
-            $signature_payload,
-            static function (&$value): void {
-                if (is_array($value)) {
-                    $value = wp_json_encode($value);
-                }
-            }
-        );
-        // API section 1.6 expects the same URL-encoded ordering when validating response signatures.
-        $signature_query     = http_build_query($signature_payload, '', '&');
-        $signature_base      = $signature_query . '&key=' . $credentials['secret_key'];
-        $expected_signature  = strtoupper(md5($signature_base));
+        $expected_signature  = $this->build_signature($signature_payload, $credentials['secret_key']);
 
         if ($provided_signature === '' || $expected_signature !== $provided_signature) {
             // API section 1.6 requires validating the response signature before trusting the payload.
@@ -443,6 +425,32 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         }
 
         return '';
+    }
+
+    /**
+     * Build the AllComet signature string for requests, responses, and future webhook payloads.
+     */
+    protected function build_signature(array $payload, string $secret_key): string
+    {
+        ksort($payload);
+
+        $segments = [];
+
+        foreach ($payload as $key => $value) {
+            if ('md5Info' === $key) {
+                continue; // Skip the signature itself as per AllComet docs.
+            }
+
+            if (is_array($value)) {
+                $value = wp_json_encode($value);
+            }
+
+            $segments[] = $key . '=' . $value;
+        }
+
+        $signature_base = implode('&', $segments) . '&key=' . $secret_key;
+
+        return md5($signature_base); // Keep lowercase to match the official samples.
     }
 
     /**
