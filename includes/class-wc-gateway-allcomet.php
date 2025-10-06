@@ -258,6 +258,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $order_created = $order->get_date_created();
         $bill_number = substr(preg_replace('/\D+/', '', (string) $order->get_id() . ($order_created ? $order_created->getTimestamp() : time())), 0, 30);
         // Combine the order ID with its creation timestamp to keep a digit-only, <=30 char unique bill number per order.
+        $billing_state  = sanitize_text_field($order->get_billing_state());
+        $shipping_state = sanitize_text_field($order->get_shipping_state());
+
         $request_args = [
             'merNo'             => $credentials['merchant_id'],
             'amount'            => number_format((float) $order->get_total(), 2, '.', ''),
@@ -269,7 +272,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'lastName'          => substr(sanitize_text_field($order->get_billing_last_name()), 0, 30),
             'firstName'         => substr(sanitize_text_field($order->get_billing_first_name()), 0, 60),
             'country'           => strtoupper((string) $order->get_billing_country()),
-            'state'             => sanitize_text_field($order->get_billing_state()),
+            'state'             => '' !== $billing_state ? $billing_state : 'NA', // AllComet requires a non-empty state placeholder.
             'city'              => sanitize_text_field($order->get_billing_city()),
             'address'           => trim($order->get_billing_address_1() . ' ' . $order->get_billing_address_2()),
             'zipCode'           => sanitize_text_field($order->get_billing_postcode()),
@@ -285,7 +288,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'shippingFirstName' => substr(sanitize_text_field($order->get_shipping_first_name()), 0, 60),
             'shippingLastName'  => substr(sanitize_text_field($order->get_shipping_last_name()), 0, 30),
             'shippingCountry'   => strtoupper((string) $order->get_shipping_country()),
-            'shippingState'     => sanitize_text_field($order->get_shipping_state()),
+            'shippingState'     => '' !== $shipping_state ? $shipping_state : ('' !== $billing_state ? $billing_state : 'NA'),
             'shippingCity'      => sanitize_text_field($order->get_shipping_city()),
             'shippingAddress'   => trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2()),
             'shippingZipCode'   => sanitize_text_field($order->get_shipping_postcode()),
