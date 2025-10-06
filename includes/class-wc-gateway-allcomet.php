@@ -255,10 +255,13 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         if (method_exists($order, 'get_shipping_phone')) {
             $shipping_phone = (string) $order->get_shipping_phone();
         }
+        $order_created = $order->get_date_created();
+        $bill_number = substr(preg_replace('/\D+/', '', (string) $order->get_id() . ($order_created ? $order_created->getTimestamp() : time())), 0, 30);
+        // Combine the order ID with its creation timestamp to keep a digit-only, <=30 char unique bill number per order.
         $request_args = [
             'merNo'             => $credentials['merchant_id'],
             'amount'            => number_format((float) $order->get_total(), 2, '.', ''),
-            'billNo'            => substr($order->get_order_key(), 0, 30),
+            'billNo'            => $bill_number,
             'currency'          => $currency_map[$order->get_currency()] ?? $order->get_currency(),
             'returnURL'         => $this->get_return_url($order),
             'notifyUrl'         => home_url('/wc-api/allcomet'),
