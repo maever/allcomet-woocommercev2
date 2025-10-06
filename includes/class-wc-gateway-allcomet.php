@@ -251,15 +251,30 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         ];
 
         $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_number')) ?: '';
-        $shipping_phone = '';
-        if (method_exists($order, 'get_shipping_phone')) {
-            $shipping_phone = (string) $order->get_shipping_phone();
-        }
         $order_created = $order->get_date_created();
         $bill_number = substr(preg_replace('/\D+/', '', (string) $order->get_id() . ($order_created ? $order_created->getTimestamp() : time())), 0, 30);
         // Combine the order ID with its creation timestamp to keep a digit-only, <=30 char unique bill number per order.
         $billing_state  = sanitize_text_field($order->get_billing_state());
         $shipping_state = sanitize_text_field($order->get_shipping_state());
+
+        $billing_first_name = substr(sanitize_text_field($order->get_billing_first_name()), 0, 60);
+        $billing_last_name  = substr(sanitize_text_field($order->get_billing_last_name()), 0, 30);
+        $billing_city       = sanitize_text_field($order->get_billing_city()) ?: 'NA'; // AllComet "must include" text placeholder when billing city absent.
+        $billing_address    = trim($order->get_billing_address_1() . ' ' . $order->get_billing_address_2()) ?: 'NA'; // AllComet "must include" text placeholder when billing address absent.
+        $billing_zip        = sanitize_text_field($order->get_billing_postcode()) ?: '000000'; // AllComet "must include" numeric placeholder when billing postcode absent.
+        $billing_email      = sanitize_email($order->get_billing_email()) ?: 'NA'; // AllComet "must include" text placeholder when billing email absent.
+        $billing_phone      = sanitize_text_field($order->get_billing_phone()) ?: '0000000000'; // AllComet "must include" numeric placeholder when billing phone absent.
+
+        $shipping_first_name = substr(sanitize_text_field($order->get_shipping_first_name()), 0, 60) ?: ($billing_first_name ?: 'NA'); // AllComet "must include" cascade through billing then placeholder.
+        $shipping_last_name  = substr(sanitize_text_field($order->get_shipping_last_name()), 0, 30) ?: ($billing_last_name ?: 'NA'); // AllComet "must include" cascade through billing then placeholder.
+        $shipping_country    = strtoupper((string) $order->get_shipping_country()) ?: (strtoupper((string) $order->get_billing_country()) ?: 'NA'); // AllComet "must include" cascade through billing then placeholder.
+        $shipping_city       = sanitize_text_field($order->get_shipping_city()) ?: $billing_city; // AllComet "must include" cascade through billing then placeholder.
+        $shipping_address    = trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2()) ?: $billing_address; // AllComet "must include" cascade through billing then placeholder.
+        $shipping_zip        = sanitize_text_field($order->get_shipping_postcode()) ?: $billing_zip; // AllComet "must include" cascade through billing then placeholder.
+        $shipping_email      = method_exists($order, 'get_shipping_email') ? sanitize_email((string) $order->get_shipping_email()) : '';
+        $shipping_email      = $shipping_email ?: $billing_email; // AllComet "must include" cascade through billing then placeholder.
+        $shipping_phone_raw  = method_exists($order, 'get_shipping_phone') ? (string) $order->get_shipping_phone() : '';
+        $shipping_phone      = sanitize_text_field($shipping_phone_raw) ?: $billing_phone; // AllComet "must include" cascade through billing then placeholder.
 
         $request_args = [
             'merNo'             => $credentials['merchant_id'],
@@ -269,15 +284,15 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'returnURL'         => $this->get_return_url($order),
             'notifyUrl'         => home_url('/wc-api/allcomet'),
             'tradeUrl'          => home_url('/'),
-            'lastName'          => substr(sanitize_text_field($order->get_billing_last_name()), 0, 30),
-            'firstName'         => substr(sanitize_text_field($order->get_billing_first_name()), 0, 60),
+            'lastName'          => $billing_last_name,
+            'firstName'         => $billing_first_name,
             'country'           => strtoupper((string) $order->get_billing_country()),
             'state'             => '' !== $billing_state ? $billing_state : 'NA', // AllComet requires a non-empty state placeholder.
-            'city'              => sanitize_text_field($order->get_billing_city()),
-            'address'           => trim($order->get_billing_address_1() . ' ' . $order->get_billing_address_2()),
-            'zipCode'           => sanitize_text_field($order->get_billing_postcode()),
-            'email'             => sanitize_email($order->get_billing_email()),
-            'phone'             => sanitize_text_field($order->get_billing_phone()),
+            'city'              => $billing_city,
+            'address'           => $billing_address,
+            'zipCode'           => $billing_zip,
+            'email'             => $billing_email,
+            'phone'             => $billing_phone,
             'cardNum'           => $card_number,
             'year'              => substr(preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_expiry_year')), -4),
             'month'             => str_pad(preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_expiry_month')), 2, '0', STR_PAD_LEFT),
@@ -285,15 +300,15 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'productInfo'       => wp_json_encode($order->get_items() ? wp_list_pluck($order->get_items(), 'name') : ['Order #' . $order->get_id()]),
             'ip'                => WC_Geolocation::get_ip_address(),
             'dataTime'          => gmdate('YmdHis'),
-            'shippingFirstName' => substr(sanitize_text_field($order->get_shipping_first_name()), 0, 60),
-            'shippingLastName'  => substr(sanitize_text_field($order->get_shipping_last_name()), 0, 30),
-            'shippingCountry'   => strtoupper((string) $order->get_shipping_country()),
+            'shippingFirstName' => $shipping_first_name,
+            'shippingLastName'  => $shipping_last_name,
+            'shippingCountry'   => $shipping_country,
             'shippingState'     => '' !== $shipping_state ? $shipping_state : ('' !== $billing_state ? $billing_state : 'NA'),
-            'shippingCity'      => sanitize_text_field($order->get_shipping_city()),
-            'shippingAddress'   => trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2()),
-            'shippingZipCode'   => sanitize_text_field($order->get_shipping_postcode()),
-            'shippingEmail'     => sanitize_email($order->get_billing_email()),
-            'shippingPhone'     => sanitize_text_field($shipping_phone ?: $order->get_billing_phone()),
+            'shippingCity'      => $shipping_city,
+            'shippingAddress'   => $shipping_address,
+            'shippingZipCode'   => $shipping_zip,
+            'shippingEmail'     => $shipping_email,
+            'shippingPhone'     => $shipping_phone,
             'isThreeDPay'       => 'N',
             'language'          => 'EN',
         ];
