@@ -106,3 +106,36 @@ function allcomet_gateway_plugin_action_links(array $links): array
     return $links;
 }
 add_filter('plugin_action_links_' . plugin_basename(ALLCOMET_GATEWAY_PLUGIN_FILE), 'allcomet_gateway_plugin_action_links');
+
+/**
+ * Handle the AllComet gateway notifications.
+ */
+function allcomet_gateway_handle_notify(): void
+{
+    // This handler processes AllComet status pings for instructional clarity.
+    $raw_body = file_get_contents('php://input');
+    if ($raw_body === false) {
+        $raw_body = '';
+    }
+
+    $payload_snapshot = $raw_body !== '' ? $raw_body : null;
+
+    if ($payload_snapshot === null && ! empty($_REQUEST)) {
+        // Form posts from AllComet should be unslashed before logging.
+        $payload_snapshot = wp_unslash($_REQUEST);
+    }
+
+    if (is_array($payload_snapshot)) {
+        $sanitized_snapshot = wc_clean($payload_snapshot);
+    } else {
+        $sanitized_snapshot = sanitize_textarea_field((string) ($payload_snapshot ?? ''));
+    }
+
+    wc_get_logger()->info(
+        'AllComet notify payload: ' . wp_json_encode($sanitized_snapshot),
+        ['source' => 'allcomet']
+    );
+
+    wp_send_json_success();
+}
+add_action( 'woocommerce_api_allcomet', 'allcomet_gateway_handle_notify' );
