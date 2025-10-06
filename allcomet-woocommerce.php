@@ -112,27 +112,80 @@ add_filter('plugin_action_links_' . plugin_basename(ALLCOMET_GATEWAY_PLUGIN_FILE
  */
 function allcomet_gateway_handle_notify(): void
 {
-    // This handler processes AllComet status pings for instructional clarity.
     $raw_body = file_get_contents('php://input');
     if ($raw_body === false) {
         $raw_body = '';
     }
 
-    $payload_snapshot = $raw_body !== '' ? $raw_body : null;
+    $payload = null;
 
-    if ($payload_snapshot === null && ! empty($_REQUEST)) {
-        // Form posts from AllComet should be unslashed before logging.
-        $payload_snapshot = wp_unslash($_REQUEST);
+    if ($raw_body !== '') {
+        $decoded_json = json_decode($raw_body, true);
+        if (is_array($decoded_json)) {
+            $payload = $decoded_json;
+        } else {
+            parse_str($raw_body, $parsed_form);
+            if (! empty($parsed_form)) {
+                $payload = $parsed_form;
+            }
+        }
     }
 
-    if (is_array($payload_snapshot)) {
-        $sanitized_snapshot = wc_clean($payload_snapshot);
-    } else {
-        $sanitized_snapshot = sanitize_textarea_field((string) ($payload_snapshot ?? ''));
+    if (! is_array($payload) && ! empty($_REQUEST)) {
+        // Form posts from AllComet should be unslashed before validation.
+        $payload = wp_unslash($_REQUEST); // phpcs:ignore WordPress.Security.NonceVerification.Missing
     }
 
+    if (! is_array($payload)) {
+        $payload = [];
+    }
+
+    $settings  = get_option('woocommerce_allcomet_settings', []);
+    $settings  = is_array($settings) ? $settings : [];
+    $test_mode = isset($settings['test_mode']) ? $settings['test_mode'] : 'yes';
+    $secret_key = 'yes' === $test_mode
+        ? (string) ($settings['test_secret_key'] ?? '')
+        : (string) ($settings['live_secret_key'] ?? '');
+
+    if ('' === $secret_key) {
+        wc_get_logger()->error('AllComet notify secret key missing for signature verification.', ['source' => 'allcomet']);
+        wp_send_json_error(['message' => __('Signature verification failed.', 'allcomet-woocommerce')], 400);
+
+        return;
+    }
+
+    $provided_signature = isset($payload['md5Info']) ? strtoupper((string) $payload['md5Info']) : '';
+    $signature_payload  = $payload;
+    unset($signature_payload['md5Info']);
+    ksort($signature_payload);
+    array_walk(
+        $signature_payload,
+        static function (&$value): void {
+            if (is_array($value)) {
+                $value = wp_json_encode($value);
+            }
+        }
+    );
+    // API section 1.6 expects signatures calculated over the URL-encoded key/value pairs.
+    $signature_query    = http_build_query($signature_payload, '', '&');
+    $signature_base     = $signature_query . '&key=' . $secret_key;
+    $expected_signature = strtoupper(md5($signature_base));
+
+    if ($provided_signature === '' || $expected_signature !== $provided_signature) {
+        // API section 1.6 requires validating the notification signature before acknowledging receipt.
+        $sanitized_snapshot = wc_clean($payload);
+        wc_get_logger()->error(
+            'AllComet notify signature verification failed: ' . wp_json_encode($sanitized_snapshot),
+            ['source' => 'allcomet']
+        );
+        wp_send_json_error(['message' => __('Signature verification failed.', 'allcomet-woocommerce')], 400);
+
+        return;
+    }
+
+    $sanitized_snapshot = wc_clean($payload);
     wc_get_logger()->info(
-        'AllComet notify payload: ' . wp_json_encode($sanitized_snapshot),
+        'AllComet notify payload verified: ' . wp_json_encode($sanitized_snapshot),
         ['source' => 'allcomet']
     );
 
