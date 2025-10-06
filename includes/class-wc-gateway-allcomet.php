@@ -33,6 +33,11 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
     protected string $merchant_id = '';
     protected string $secret_key = '';
 
+    /**
+     * Flag indicating whether 3D Secure redirects should be requested.
+     */
+    protected bool $enable_three_d = false;
+
     public function __construct()
     {
         $this->id = 'allcomet';
@@ -86,6 +91,14 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
                 'label'       => __('Enable sandbox (test) mode', 'allcomet-woocommerce'),
                 'default'     => 'yes',
                 'description' => __('Use sandbox credentials for development and testing.', 'allcomet-woocommerce'),
+            ],
+            'enable_three_d' => [
+                'title'       => __('3D Secure', 'allcomet-woocommerce'),
+                'type'        => 'checkbox',
+                'label'       => __('Forward shoppers to AllComet 3D Secure when required.', 'allcomet-woocommerce'),
+                'default'     => 'no',
+                'description' => __('When enabled the gateway will request 3D Secure authentication and redirect customers to the auth3DUrl provided by AllComet.', 'allcomet-woocommerce'),
+                'desc_tip'    => true,
             ],
             'sandbox_credentials_title' => [
                 'title'       => __('Sandbox credentials', 'allcomet-woocommerce'),
@@ -309,7 +322,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'shippingZipCode'   => $shipping_zip,
             'shippingEmail'     => $shipping_email,
             'shippingPhone'     => $shipping_phone,
-            'isThreeDPay'       => 'N',
+            'isThreeDPay'       => $this->enable_three_d ? 'Y' : 'N',
             'language'          => 'EN',
         ];
 
@@ -378,7 +391,30 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
          */
         do_action('wc_allcomet_payment_response', $parsed_body, $order);
 
-        if (! isset($parsed_body['code']) || 'P0001' !== $parsed_body['code']) {
+        $transaction_ref = isset($parsed_body['orderNo']) ? sanitize_text_field((string) $parsed_body['orderNo']) : '';
+        if ('' !== $transaction_ref) {
+            $order->update_meta_data('_allcomet_transaction_ref', $transaction_ref);
+        }
+
+        $response_code = isset($parsed_body['code']) ? (string) $parsed_body['code'] : '';
+
+        if ('Q0001' === $response_code) {
+            $auth_url = isset($parsed_body['auth3DUrl']) ? esc_url_raw((string) $parsed_body['auth3DUrl']) : '';
+
+            if ($this->enable_three_d && '' !== $auth_url) {
+                // Documented 3DS hand-off: AllComet expects the shopper to complete authentication at the supplied URL.
+                $order->update_status('pending', __('Awaiting AllComet 3D Secure authentication.', 'allcomet-woocommerce'));
+                $order->add_order_note(__('Customer redirected to AllComet 3D Secure authentication.', 'allcomet-woocommerce'));
+                $order->save();
+
+                return [
+                    'result'   => 'success',
+                    'redirect' => $auth_url,
+                ];
+            }
+        }
+
+        if ('P0001' !== $response_code) {
             $message = isset($parsed_body['message']) ? wp_strip_all_tags((string) $parsed_body['message']) : __('Unable to process the payment with AllComet.', 'allcomet-woocommerce');
             // Provide customers with a consistently formatted failure notice.
             $formatted_notice = sprintf(__('Transaction failed, error: %s', 'allcomet-woocommerce'), $message);
@@ -388,11 +424,6 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
                 'result'   => 'failure',
                 'redirect' => '',
             ];
-        }
-
-        $transaction_ref = isset($parsed_body['orderNo']) ? sanitize_text_field((string) $parsed_body['orderNo']) : '';
-        if ('' !== $transaction_ref) {
-            $order->update_meta_data('_allcomet_transaction_ref', $transaction_ref);
         }
 
         $order->add_order_note(
@@ -463,6 +494,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $this->test_secret_key = (string) $this->get_option('test_secret_key');
         $this->live_merchant_id = (string) $this->get_option('live_merchant_id');
         $this->live_secret_key = (string) $this->get_option('live_secret_key');
+        $this->enable_three_d = 'yes' === $this->get_option('enable_three_d', 'no');
 
         $this->set_active_credentials();
     }
