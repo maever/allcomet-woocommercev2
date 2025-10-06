@@ -315,11 +315,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         $sign_payload = $request_args;
         ksort($sign_payload);
-        $sign_pairs = [];
-        foreach ($sign_payload as $key => $value) {
-            $sign_pairs[] = $key . '=' . $value;
-        }
-        $signature_base = implode('&', $sign_pairs) . '&key=' . $credentials['secret_key'];
+        // API section 1.6 requires signing the URL-encoded payload prior to submission.
+        $signature_query = http_build_query($sign_payload, '', '&');
+        $signature_base  = $signature_query . '&key=' . $credentials['secret_key'];
         $request_args['md5Info'] = strtoupper(md5($signature_base));
 
         /**
@@ -350,6 +348,41 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         if (! is_array($parsed_body)) {
             parse_str($body, $parsed_body);
+        }
+
+        $provided_signature = isset($parsed_body['md5Info']) ? strtoupper((string) $parsed_body['md5Info']) : '';
+        $signature_payload  = is_array($parsed_body) ? $parsed_body : [];
+        unset($signature_payload['md5Info']);
+        ksort($signature_payload);
+        array_walk(
+            $signature_payload,
+            static function (&$value): void {
+                if (is_array($value)) {
+                    $value = wp_json_encode($value);
+                }
+            }
+        );
+        // API section 1.6 expects the same URL-encoded ordering when validating response signatures.
+        $signature_query     = http_build_query($signature_payload, '', '&');
+        $signature_base      = $signature_query . '&key=' . $credentials['secret_key'];
+        $expected_signature  = strtoupper(md5($signature_base));
+
+        if ($provided_signature === '' || $expected_signature !== $provided_signature) {
+            // API section 1.6 requires validating the response signature before trusting the payload.
+            $safe_log_data = array_intersect_key(
+                (array) $parsed_body,
+                array_flip(['code', 'message', 'orderNo', 'billNo'])
+            );
+            wc_get_logger()->error(
+                'AllComet response signature verification failed: ' . wp_json_encode($safe_log_data),
+                ['source' => $this->id]
+            );
+            wc_add_notice(__('Payment error: please try again or use a different card.', 'allcomet-woocommerce'), 'error');
+
+            return [
+                'result'   => 'failure',
+                'redirect' => '',
+            ];
         }
 
         $safe_log_data = array_intersect_key(
