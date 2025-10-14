@@ -1,6 +1,6 @@
 <?php
 /**
- * AllComet WooCommerce Gateway class.
+ * ALC Payment WooCommerce Gateway class.
  */
 
 defined('ABSPATH') || exit;
@@ -16,13 +16,13 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
     protected bool $test_mode = true;
 
     /**
-     * Sandbox credentials provided by AllComet.
+     * Sandbox credentials provided by ALC Payment.
      */
     protected string $test_merchant_id = '';
     protected string $test_secret_key = '';
 
     /**
-     * Production credentials provided by AllComet.
+     * Production credentials provided by ALC Payment.
      */
     protected string $live_merchant_id = '';
     protected string $live_secret_key = '';
@@ -103,18 +103,18 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'sandbox_credentials_title' => [
                 'title'       => __('Sandbox credentials', 'allcomet-woocommerce'),
                 'type'        => 'title',
-                'description' => __('Enter the AllComet sandbox (test) credentials supplied for development.', 'allcomet-woocommerce'),
+                'description' => __('Enter the ALC Payment sandbox (test) credentials supplied for development.', 'allcomet-woocommerce'),
             ],
             'test_merchant_id' => [
                 'title'       => __('Sandbox Merchant ID', 'allcomet-woocommerce'),
                 'type'        => 'text',
-                'description' => __('Your AllComet sandbox merchant identifier.', 'allcomet-woocommerce'),
+                'description' => __('Your ALC Payment sandbox merchant identifier.', 'allcomet-woocommerce'),
                 'default'     => '',
             ],
             'test_secret_key' => [
                 'title'       => __('Sandbox Secret Key', 'allcomet-woocommerce'),
                 'type'        => 'password',
-                'description' => __('API key used to authenticate requests against the AllComet sandbox environment.', 'allcomet-woocommerce'),
+                'description' => __('API key used to authenticate requests against the ALC Payment sandbox environment.', 'allcomet-woocommerce'),
                 'default'     => '',
             ],
             'production_credentials_title' => [
@@ -125,13 +125,13 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'live_merchant_id' => [
                 'title'       => __('Production Merchant ID', 'allcomet-woocommerce'),
                 'type'        => 'text',
-                'description' => __('Your AllComet production merchant identifier.', 'allcomet-woocommerce'),
+                'description' => __('Your ALC Payment production merchant identifier.', 'allcomet-woocommerce'),
                 'default'     => '',
             ],
             'live_secret_key' => [
                 'title'       => __('Production Secret Key', 'allcomet-woocommerce'),
                 'type'        => 'password',
-                'description' => __('API key used to authenticate requests against the AllComet production environment.', 'allcomet-woocommerce'),
+                'description' => __('API key used to authenticate requests against the ALC Payment production environment.', 'allcomet-woocommerce'),
                 'default'     => '',
             ],
         ];
@@ -225,7 +225,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
     }
 
     /**
-     * Trigger the payment request with AllComet.
+     * Trigger the payment request with ALC Payment.
      *
      * @param int $order_id
      * @return array<string, string>
@@ -272,22 +272,22 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         $billing_first_name = substr(sanitize_text_field($order->get_billing_first_name()), 0, 60);
         $billing_last_name  = substr(sanitize_text_field($order->get_billing_last_name()), 0, 30);
-        $billing_city       = sanitize_text_field($order->get_billing_city()) ?: 'NA'; // AllComet "must include" text placeholder when billing city absent.
-        $billing_address    = trim($order->get_billing_address_1() . ' ' . $order->get_billing_address_2()) ?: 'NA'; // AllComet "must include" text placeholder when billing address absent.
-        $billing_zip        = sanitize_text_field($order->get_billing_postcode()) ?: '000000'; // AllComet "must include" numeric placeholder when billing postcode absent.
-        $billing_email      = sanitize_email($order->get_billing_email()) ?: 'NA'; // AllComet "must include" text placeholder when billing email absent.
-        $billing_phone      = sanitize_text_field($order->get_billing_phone()) ?: '0000000000'; // AllComet "must include" numeric placeholder when billing phone absent.
+        $billing_city       = sanitize_text_field($order->get_billing_city()) ?: 'NA'; // ALC Payment "must include" text placeholder when billing city absent.
+        $billing_address    = trim($order->get_billing_address_1() . ' ' . $order->get_billing_address_2()) ?: 'NA'; // ALC Payment "must include" text placeholder when billing address absent.
+        $billing_zip        = sanitize_text_field($order->get_billing_postcode()) ?: '000000'; // ALC Payment "must include" numeric placeholder when billing postcode absent.
+        $billing_email      = sanitize_email($order->get_billing_email()) ?: 'NA'; // ALC Payment "must include" text placeholder when billing email absent.
+        $billing_phone      = sanitize_text_field($order->get_billing_phone()) ?: '0000000000'; // ALC Payment "must include" numeric placeholder when billing phone absent.
 
-        $shipping_first_name = substr(sanitize_text_field($order->get_shipping_first_name()), 0, 60) ?: ($billing_first_name ?: 'NA'); // AllComet "must include" cascade through billing then placeholder.
-        $shipping_last_name  = substr(sanitize_text_field($order->get_shipping_last_name()), 0, 30) ?: ($billing_last_name ?: 'NA'); // AllComet "must include" cascade through billing then placeholder.
-        $shipping_country    = strtoupper((string) $order->get_shipping_country()) ?: (strtoupper((string) $order->get_billing_country()) ?: 'NA'); // AllComet "must include" cascade through billing then placeholder.
-        $shipping_city       = sanitize_text_field($order->get_shipping_city()) ?: $billing_city; // AllComet "must include" cascade through billing then placeholder.
-        $shipping_address    = trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2()) ?: $billing_address; // AllComet "must include" cascade through billing then placeholder.
-        $shipping_zip        = sanitize_text_field($order->get_shipping_postcode()) ?: $billing_zip; // AllComet "must include" cascade through billing then placeholder.
+        $shipping_first_name = substr(sanitize_text_field($order->get_shipping_first_name()), 0, 60) ?: ($billing_first_name ?: 'NA'); // ALC Payment "must include" cascade through billing then placeholder.
+        $shipping_last_name  = substr(sanitize_text_field($order->get_shipping_last_name()), 0, 30) ?: ($billing_last_name ?: 'NA'); // ALC Payment "must include" cascade through billing then placeholder.
+        $shipping_country    = strtoupper((string) $order->get_shipping_country()) ?: (strtoupper((string) $order->get_billing_country()) ?: 'NA'); // ALC Payment "must include" cascade through billing then placeholder.
+        $shipping_city       = sanitize_text_field($order->get_shipping_city()) ?: $billing_city; // ALC Payment "must include" cascade through billing then placeholder.
+        $shipping_address    = trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2()) ?: $billing_address; // ALC Payment "must include" cascade through billing then placeholder.
+        $shipping_zip        = sanitize_text_field($order->get_shipping_postcode()) ?: $billing_zip; // ALC Payment "must include" cascade through billing then placeholder.
         $shipping_email      = method_exists($order, 'get_shipping_email') ? sanitize_email((string) $order->get_shipping_email()) : '';
-        $shipping_email      = $shipping_email ?: $billing_email; // AllComet "must include" cascade through billing then placeholder.
+        $shipping_email      = $shipping_email ?: $billing_email; // ALC Payment "must include" cascade through billing then placeholder.
         $shipping_phone_raw  = method_exists($order, 'get_shipping_phone') ? (string) $order->get_shipping_phone() : '';
-        $shipping_phone      = sanitize_text_field($shipping_phone_raw) ?: $billing_phone; // AllComet "must include" cascade through billing then placeholder.
+        $shipping_phone      = sanitize_text_field($shipping_phone_raw) ?: $billing_phone; // ALC Payment "must include" cascade through billing then placeholder.
 
         $request_args = [
             'merNo'             => $credentials['merchant_id'],
@@ -295,12 +295,12 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'billNo'            => $bill_number,
             'currency'          => $currency_map[$order->get_currency()] ?? $order->get_currency(),
             'returnURL'         => $this->get_return_url($order),
-            'notifyUrl'         => home_url('/wc-api/allcomet'),
+            'notifyUrl'         => home_url('/wc-api/alc-notify'),
             'tradeUrl'          => home_url('/'),
             'lastName'          => $billing_last_name,
             'firstName'         => $billing_first_name,
             'country'           => strtoupper((string) $order->get_billing_country()),
-            'state'             => '' !== $billing_state ? $billing_state : 'NA', // AllComet requires a non-empty state placeholder.
+            'state'             => '' !== $billing_state ? $billing_state : 'NA', // ALC Payment requires a non-empty state placeholder.
             'city'              => $billing_city,
             'address'           => $billing_address,
             'zipCode'           => $billing_zip,
@@ -369,7 +369,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
                 array_flip(['code', 'message', 'orderNo', 'billNo'])
             );
             wc_get_logger()->error(
-                'AllComet response signature verification failed: ' . wp_json_encode($safe_log_data),
+                'ALC Payment response signature verification failed: ' . wp_json_encode($safe_log_data),
                 ['source' => $this->id]
             );
             wc_add_notice(__('Payment error: please try again or use a different card.', 'allcomet-woocommerce'), 'error');
@@ -384,7 +384,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             (array) $parsed_body,
             array_flip(['code', 'message', 'orderNo', 'billNo'])
         );
-        wc_get_logger()->info('AllComet response: ' . wp_json_encode($safe_log_data), ['source' => $this->id]);
+        wc_get_logger()->info('ALC Payment response: ' . wp_json_encode($safe_log_data), ['source' => $this->id]);
 
         /**
          * Surface responses to automated tests and extensions.
@@ -402,7 +402,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             $auth_url = isset($parsed_body['auth3DUrl']) ? esc_url_raw((string) $parsed_body['auth3DUrl']) : '';
 
             if ($this->enable_three_d && '' !== $auth_url) {
-                // Documented 3DS hand-off: AllComet expects the shopper to complete authentication at the supplied URL.
+                // Documented 3DS hand-off: ALC Payment expects the shopper to complete authentication at the supplied URL.
                 $order->update_status('pending', __('Awaiting 3D Secure authentication.', 'allcomet-woocommerce'));
                 $order->add_order_note(__('Customer redirected to 3D Secure authentication.', 'allcomet-woocommerce'));
                 $order->save();
@@ -459,7 +459,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
     }
 
     /**
-     * Build the AllComet signature string for requests, responses, and future webhook payloads.
+     * Build the ALC Payment signature string for requests, responses, and future webhook payloads.
      */
     protected function build_signature(array $payload, string $secret_key): string
     {
@@ -469,7 +469,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         foreach ($payload as $key => $value) {
             if ('md5Info' === $key) {
-                continue; // Skip the signature itself as per AllComet docs.
+                continue; // Skip the signature itself as per ALC Payment docs.
             }
 
             if (is_array($value)) {

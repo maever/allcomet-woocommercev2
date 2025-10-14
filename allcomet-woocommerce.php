@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name:       AllComet Payment Gateway (V2)
- * Plugin URI:        https://allcomet.com/
- * Description:       Accept credit card payments through AllComet in WooCommerce stores.
+ * Plugin Name:       ALC Payment Gateway (V2)
+ * Plugin URI:        https://alc-payment.example/
+ * Description:       Accept credit card payments through ALC Payment in WooCommerce stores.
  * Version:           0.1.0
- * Author:            AllComet
- * Author URI:        https://allcomet.com/
+ * Author:            ALC Payment
+ * Author URI:        https://alc-payment.example/
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       allcomet-woocommerce
@@ -26,7 +26,7 @@ function allcomet_gateway_activation_check(): void
     if (! class_exists('WooCommerce')) {
         deactivate_plugins(plugin_basename(ALLCOMET_GATEWAY_PLUGIN_FILE));
         wp_die(
-            esc_html__('WooCommerce must be active to use the AllComet payment gateway.', 'allcomet-woocommerce'),
+            esc_html__('WooCommerce must be active to use the ALC Payment gateway.', 'allcomet-woocommerce'),
             esc_html__('Plugin dependency check failed', 'allcomet-woocommerce'),
             ['back_link' => true]
         );
@@ -108,7 +108,7 @@ function allcomet_gateway_plugin_action_links(array $links): array
 add_filter('plugin_action_links_' . plugin_basename(ALLCOMET_GATEWAY_PLUGIN_FILE), 'allcomet_gateway_plugin_action_links');
 
 /**
- * Handle the AllComet gateway notifications.
+ * Handle the ALC Payment gateway notifications.
  */
 function allcomet_gateway_handle_notify(): void
 {
@@ -132,7 +132,7 @@ function allcomet_gateway_handle_notify(): void
     }
 
     if (! is_array($payload) && ! empty($_REQUEST)) {
-        // Form posts from AllComet should be unslashed before validation.
+        // Form posts from ALC Payment should be unslashed before validation.
         $payload = wp_unslash($_REQUEST); // phpcs:ignore WordPress.Security.NonceVerification.Missing
     }
 
@@ -148,7 +148,7 @@ function allcomet_gateway_handle_notify(): void
         : (string) ($settings['live_secret_key'] ?? '');
 
     if ('' === $secret_key) {
-        wc_get_logger()->error('AllComet notify secret key missing for signature verification.', ['source' => 'allcomet']);
+        wc_get_logger()->error('ALC Payment notify secret key missing for signature verification.', ['source' => 'allcomet']);
         wp_send_json_error(['message' => __('Signature verification failed.', 'allcomet-woocommerce')], 400);
 
         return;
@@ -175,7 +175,7 @@ function allcomet_gateway_handle_notify(): void
         // API section 1.6 requires validating the notification signature before acknowledging receipt.
         $sanitized_snapshot = wc_clean($payload);
         wc_get_logger()->error(
-            'AllComet notify signature verification failed: ' . wp_json_encode($sanitized_snapshot),
+            'ALC Payment notify signature verification failed: ' . wp_json_encode($sanitized_snapshot),
             ['source' => 'allcomet']
         );
         wp_send_json_error(['message' => __('Signature verification failed.', 'allcomet-woocommerce')], 400);
@@ -185,10 +185,10 @@ function allcomet_gateway_handle_notify(): void
 
     $sanitized_snapshot = wc_clean($payload);
     wc_get_logger()->info(
-        'AllComet notify payload verified: ' . wp_json_encode($sanitized_snapshot),
+        'ALC Payment notify payload verified: ' . wp_json_encode($sanitized_snapshot),
         ['source' => 'allcomet']
     );
 
     wp_send_json_success();
 }
-add_action( 'woocommerce_api_allcomet', 'allcomet_gateway_handle_notify' );
+add_action( 'woocommerce_api_alc-notify', 'allcomet_gateway_handle_notify' );
