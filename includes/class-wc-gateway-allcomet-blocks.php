@@ -1,6 +1,6 @@
 <?php
 /**
- * WooCommerce Blocks integration for AllComet gateway.
+ * WooCommerce Blocks integration for ALC Payment gateway.
  */
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
@@ -8,7 +8,7 @@ use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodTyp
 defined('ABSPATH') || exit;
 
 /**
- * Registers the AllComet payment method with WooCommerce Blocks checkout.
+ * Registers the ALC Payment method with WooCommerce Blocks checkout.
  */
 class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
 {
