@@ -9,7 +9,7 @@
     const { __ } = window.wp.i18n;
 
     const settings = getSetting('allcomet_data', {});
-    const label = settings.title || __('AllComet', 'allcomet-woocommerce');
+    const label = settings.title || __('Credit Card', 'allcomet-woocommerce');
     const description = settings.description || '';
 
     const errorMessages = Object.assign(

@@ -31,8 +31,8 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
         $this->settings = array_merge(
             [
                 'enabled'     => 'no',
-                'title'       => __('Credit Card (AllComet)', 'allcomet-woocommerce'),
-                'description' => __('Pay securely using your credit card via AllComet.', 'allcomet-woocommerce'),
+                'title'       => __('Credit Card', 'allcomet-woocommerce'),
+                'description' => __('Pay securely using your credit card.', 'allcomet-woocommerce'),
             ],
             $settings
         );
