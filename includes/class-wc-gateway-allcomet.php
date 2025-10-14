@@ -42,8 +42,8 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
     {
         $this->id = 'allcomet';
         $this->icon = ''; // Add 32x32 icon URL when assets are ready.
-        $this->method_title = __('AllComet', 'allcomet-woocommerce');
-        $this->method_description = __('Accept credit card payments securely through the AllComet gateway.', 'allcomet-woocommerce');
+        $this->method_title = __('Credit Card', 'allcomet-woocommerce');
+        $this->method_description = __('Accept credit card payments securely through this gateway.', 'allcomet-woocommerce');
         $this->has_fields = true;
         $this->supports = ['products'];
 
@@ -68,21 +68,21 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'enabled' => [
                 'title'   => __('Enable/Disable', 'allcomet-woocommerce'),
                 'type'    => 'checkbox',
-                'label'   => __('Enable AllComet payments', 'allcomet-woocommerce'),
+                'label'   => __('Enable credit card payments', 'allcomet-woocommerce'),
                 'default' => 'no',
             ],
             'title' => [
                 'title'       => __('Title', 'allcomet-woocommerce'),
                 'type'        => 'text',
                 'description' => __('Title shown to customers during checkout.', 'allcomet-woocommerce'),
-                'default'     => __('Credit Card (AllComet)', 'allcomet-woocommerce'),
+                'default'     => __('Credit Card', 'allcomet-woocommerce'),
                 'desc_tip'    => true,
             ],
             'description' => [
                 'title'       => __('Description', 'allcomet-woocommerce'),
                 'type'        => 'textarea',
                 'description' => __('Payment method description displayed at checkout.', 'allcomet-woocommerce'),
-                'default'     => __('Pay securely using your credit card via AllComet.', 'allcomet-woocommerce'),
+                'default'     => __('Pay securely using your credit card.', 'allcomet-woocommerce'),
                 'desc_tip'    => true,
             ],
             'test_mode' => [
@@ -95,9 +95,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'enable_three_d' => [
                 'title'       => __('3D Secure', 'allcomet-woocommerce'),
                 'type'        => 'checkbox',
-                'label'       => __('Forward shoppers to AllComet 3D Secure when required.', 'allcomet-woocommerce'),
+                'label'       => __('Forward shoppers to 3D Secure when required.', 'allcomet-woocommerce'),
                 'default'     => 'no',
-                'description' => __('When enabled the gateway will request 3D Secure authentication and redirect customers to the auth3DUrl provided by AllComet.', 'allcomet-woocommerce'),
+                'description' => __('When enabled the gateway will request 3D Secure authentication and redirect customers to the auth3DUrl provided by the payment processor.', 'allcomet-woocommerce'),
                 'desc_tip'    => true,
             ],
             'sandbox_credentials_title' => [
@@ -235,7 +235,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
 
         if (! $order) {
-            wc_add_notice(__('Unable to initialize the AllComet payment.', 'allcomet-woocommerce'), 'error');
+            wc_add_notice(__('Unable to initialize the credit card payment.', 'allcomet-woocommerce'), 'error');
 
             return [
                 'result'   => 'failure',
@@ -403,8 +403,8 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
             if ($this->enable_three_d && '' !== $auth_url) {
                 // Documented 3DS hand-off: AllComet expects the shopper to complete authentication at the supplied URL.
-                $order->update_status('pending', __('Awaiting AllComet 3D Secure authentication.', 'allcomet-woocommerce'));
-                $order->add_order_note(__('Customer redirected to AllComet 3D Secure authentication.', 'allcomet-woocommerce'));
+                $order->update_status('pending', __('Awaiting 3D Secure authentication.', 'allcomet-woocommerce'));
+                $order->add_order_note(__('Customer redirected to 3D Secure authentication.', 'allcomet-woocommerce'));
                 $order->save();
 
                 return [
@@ -415,7 +415,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         }
 
         if ('P0001' !== $response_code) {
-            $message = isset($parsed_body['message']) ? wp_strip_all_tags((string) $parsed_body['message']) : __('Unable to process the payment with AllComet.', 'allcomet-woocommerce');
+            $message = isset($parsed_body['message']) ? wp_strip_all_tags((string) $parsed_body['message']) : __('Unable to process the credit card payment.', 'allcomet-woocommerce');
             // Provide customers with a consistently formatted failure notice.
             $formatted_notice = sprintf(__('Transaction failed, error: %s', 'allcomet-woocommerce'), $message);
             wc_add_notice($formatted_notice, 'error');
@@ -428,7 +428,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         $order->add_order_note(
             sprintf(
-                __('AllComet transaction approved. Reference: %s', 'allcomet-woocommerce'),
+                __('Transaction approved. Reference: %s', 'allcomet-woocommerce'),
                 $transaction_ref ?: __('not provided', 'allcomet-woocommerce')
             )
         );
