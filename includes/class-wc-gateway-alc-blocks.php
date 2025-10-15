@@ -56,7 +56,7 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
         $handle = 'allcomet-gateway-blocks';
 
         if (! wp_script_is($handle, 'registered')) {
-            $script_url = plugins_url('assets/js/allcomet-gateway-blocks.js', ALLCOMET_GATEWAY_PLUGIN_FILE);
+            $script_url = plugins_url('assets/js/alc-gateway-blocks.js', ALLCOMET_GATEWAY_PLUGIN_FILE);
 
             wp_register_script(
                 $handle,
@@ -71,7 +71,7 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
                 true
             );
 
-            wp_set_script_translations($handle, 'allcomet-woocommerce', dirname(plugin_basename(ALLCOMET_GATEWAY_PLUGIN_FILE)) . '/languages');
+            wp_set_script_translations($handle, 'alc-woocommerce', dirname(plugin_basename(ALLCOMET_GATEWAY_PLUGIN_FILE)) . '/languages');
         }
 
         return [$handle];

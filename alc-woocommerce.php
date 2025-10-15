@@ -52,7 +52,7 @@ function allcomet_gateway_plugins_loaded(): void
         return;
     }
 
-    require_once ALLCOMET_GATEWAY_PLUGIN_PATH . 'includes/class-wc-gateway-allcomet.php';
+    require_once ALLCOMET_GATEWAY_PLUGIN_PATH . 'includes/class-wc-gateway-alc.php';
 }
 add_action('plugins_loaded', 'allcomet_gateway_plugins_loaded');
 
@@ -79,7 +79,7 @@ function allcomet_gateway_register_blocks_support(): void
         return;
     }
 
-    require_once ALLCOMET_GATEWAY_PLUGIN_PATH . 'includes/class-wc-gateway-allcomet-blocks.php';
+    require_once ALLCOMET_GATEWAY_PLUGIN_PATH . 'includes/class-wc-gateway-alc-blocks.php';
 
     add_action(
         'woocommerce_blocks_payment_method_type_registration',
