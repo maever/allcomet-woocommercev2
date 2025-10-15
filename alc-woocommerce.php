@@ -49,6 +49,9 @@ add_action('init', 'alc_gateway_load_textdomain');
 function alc_gateway_plugins_loaded(): void
 {
     if (! class_exists('WC_Payment_Gateway')) {
+        // WooCommerce defers loading the base gateway class until it finishes bootstrapping, so queue up a retry.
+        add_action('woocommerce_loaded', 'allcomet_gateway_plugins_loaded');
+
         return;
     }
 
