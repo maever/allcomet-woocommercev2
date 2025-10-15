@@ -8,7 +8,7 @@ defined('ABSPATH') || exit;
 /**
  * Core gateway implementation used by WooCommerce checkout.
  */
-class WC_Gateway_Allcomet extends WC_Payment_Gateway
+class WC_Gateway_alc extends WC_Payment_Gateway
 {
     /**
      * Indicates whether sandbox mode is enabled.
@@ -40,7 +40,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
     public function __construct()
     {
-        $this->id = 'allcomet';
+        $this->id = 'alc';
         $this->icon = ''; // Add 32x32 icon URL when assets are ready.
         $this->method_title = __('Credit Card', 'alc-woocommerce');
         $this->method_description = __('Accept credit card payments securely through this gateway.', 'alc-woocommerce');
@@ -147,39 +147,39 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         }
 
         // Highlight the requirement for international transaction support and card brand acceptance.
-        echo '<p class="allcomet-payment-disclaimer" style="color:#cc0000;"><strong>' . esc_html__('Please remember to authorize your credit card for foreign payments !!! This option accepts Discover and JCB Cards. Please note that our processor is based in Asia, so the charge will be made internationally, and your bank could charge you extra for this. Please pay attention to the payment processor in your invoice as these may vary.', 'alc-woocommerce') . '</strong></p>';
+        echo '<p class="alc-payment-disclaimer" style="color:#cc0000;"><strong>' . esc_html__('Please remember to authorize your credit card for foreign payments !!! This option accepts Discover and JCB Cards. Please note that our processor is based in Asia, so the charge will be made internationally, and your bank could charge you extra for this. Please pay attention to the payment processor in your invoice as these may vary.', 'alc-woocommerce') . '</strong></p>';
 
-        $posted_holder  = isset($_POST['allcomet_card_holder']) ? wp_unslash($_POST['allcomet_card_holder']) : '';
-        $posted_card    = isset($_POST['allcomet_card_number']) ? wp_unslash($_POST['allcomet_card_number']) : '';
-        $posted_month   = isset($_POST['allcomet_expiry_month']) ? wp_unslash($_POST['allcomet_expiry_month']) : '';
-        $posted_year    = isset($_POST['allcomet_expiry_year']) ? wp_unslash($_POST['allcomet_expiry_year']) : '';
-        $posted_cvc     = isset($_POST['allcomet_card_cvc']) ? wp_unslash($_POST['allcomet_card_cvc']) : '';
+        $posted_holder  = isset($_POST['alc_card_holder']) ? wp_unslash($_POST['alc_card_holder']) : '';
+        $posted_card    = isset($_POST['alc_card_number']) ? wp_unslash($_POST['alc_card_number']) : '';
+        $posted_month   = isset($_POST['alc_expiry_month']) ? wp_unslash($_POST['alc_expiry_month']) : '';
+        $posted_year    = isset($_POST['alc_expiry_year']) ? wp_unslash($_POST['alc_expiry_year']) : '';
+        $posted_cvc     = isset($_POST['alc_card_cvc']) ? wp_unslash($_POST['alc_card_cvc']) : '';
 
-        echo '<fieldset id="wc-allcomet-cc-form" class="wc-credit-card-form wc-payment-form">';
+        echo '<fieldset id="wc-alc-cc-form" class="wc-credit-card-form wc-payment-form">';
         // Persist the card holder for both classic checkout and Blocks submissions.
         echo '<p class="form-row form-row-wide">';
-        echo '<label for="allcomet_card_holder">' . esc_html__('Card holder name', 'alc-woocommerce') . ' <span class="required">*</span></label>';
-        echo '<input id="allcomet_card_holder" name="allcomet_card_holder" type="text" autocomplete="cc-name" placeholder="' . esc_attr__('Jane Doe', 'alc-woocommerce') . '" value="' . esc_attr($posted_holder) . '" />';
+        echo '<label for="alc_card_holder">' . esc_html__('Card holder name', 'alc-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<input id="alc_card_holder" name="alc_card_holder" type="text" autocomplete="cc-name" placeholder="' . esc_attr__('Jane Doe', 'alc-woocommerce') . '" value="' . esc_attr($posted_holder) . '" />';
         echo '</p>';
 
         echo '<p class="form-row form-row-wide">';
-        echo '<label for="allcomet_card_number">' . esc_html__('Card number', 'alc-woocommerce') . ' <span class="required">*</span></label>';
-        echo '<input id="allcomet_card_number" name="allcomet_card_number" type="text" autocomplete="cc-number" placeholder="•••• •••• •••• ••••" value="' . esc_attr($posted_card) . '" />';
+        echo '<label for="alc_card_number">' . esc_html__('Card number', 'alc-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<input id="alc_card_number" name="alc_card_number" type="text" autocomplete="cc-number" placeholder="•••• •••• •••• ••••" value="' . esc_attr($posted_card) . '" />';
         echo '</p>';
 
-        echo '<style>#wc-allcomet-cc-form .allcomet-expiry-group{display:flex;gap:8px}#wc-allcomet-cc-form .allcomet-expiry-group .input-text{flex:1}#wc-allcomet-cc-form .allcomet-cvc-field input{max-width:140px}</style>';
+        echo '<style>#wc-alc-cc-form .alc-expiry-group{display:flex;gap:8px}#wc-alc-cc-form .alc-expiry-group .input-text{flex:1}#wc-alc-cc-form .alc-cvc-field input{max-width:140px}</style>';
 
-        echo '<p class="form-row form-row-first allcomet-expiry-field">';
-        echo '<label for="allcomet_expiry_month">' . esc_html__('Expiry', 'alc-woocommerce') . ' <span class="required">*</span></label>';
-        echo '<span class="allcomet-expiry-group">';
-        echo '<input id="allcomet_expiry_month" class="input-text" name="allcomet_expiry_month" type="text" autocomplete="cc-exp-month" placeholder="MM" value="' . esc_attr($posted_month) . '" />';
-        echo '<input id="allcomet_expiry_year" class="input-text" name="allcomet_expiry_year" type="text" autocomplete="cc-exp-year" placeholder="YYYY" value="' . esc_attr($posted_year) . '" />';
+        echo '<p class="form-row form-row-first alc-expiry-field">';
+        echo '<label for="alc_expiry_month">' . esc_html__('Expiry', 'alc-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<span class="alc-expiry-group">';
+        echo '<input id="alc_expiry_month" class="input-text" name="alc_expiry_month" type="text" autocomplete="cc-exp-month" placeholder="MM" value="' . esc_attr($posted_month) . '" />';
+        echo '<input id="alc_expiry_year" class="input-text" name="alc_expiry_year" type="text" autocomplete="cc-exp-year" placeholder="YYYY" value="' . esc_attr($posted_year) . '" />';
         echo '</span>';
         echo '</p>';
 
-        echo '<p class="form-row form-row-last allcomet-cvc-field">';
-        echo '<label for="allcomet_card_cvc">' . esc_html__('CVC', 'alc-woocommerce') . ' <span class="required">*</span></label>';
-        echo '<input id="allcomet_card_cvc" name="allcomet_card_cvc" type="password" autocomplete="cc-csc" placeholder="CVC" value="' . esc_attr($posted_cvc) . '" />';
+        echo '<p class="form-row form-row-last alc-cvc-field">';
+        echo '<label for="alc_card_cvc">' . esc_html__('CVC', 'alc-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<input id="alc_card_cvc" name="alc_card_cvc" type="password" autocomplete="cc-csc" placeholder="CVC" value="' . esc_attr($posted_cvc) . '" />';
         echo '</p>';
 
         echo '<div class="clear"></div>';
@@ -194,11 +194,11 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $this->log_checkout_snapshot('Validation snapshot');
 
         $required_fields = [
-            'allcomet_card_holder'   => __('Please enter the card holder name.', 'alc-woocommerce'),
-            'allcomet_card_number'   => __('Please enter your card number.', 'alc-woocommerce'),
-            'allcomet_expiry_month'  => __('Please enter the card expiry month.', 'alc-woocommerce'),
-            'allcomet_expiry_year'   => __('Please enter the card expiry year.', 'alc-woocommerce'),
-            'allcomet_card_cvc'      => __('Please enter the card CVC.', 'alc-woocommerce'),
+            'alc_card_holder'   => __('Please enter the card holder name.', 'alc-woocommerce'),
+            'alc_card_number'   => __('Please enter your card number.', 'alc-woocommerce'),
+            'alc_expiry_month'  => __('Please enter the card expiry month.', 'alc-woocommerce'),
+            'alc_expiry_year'   => __('Please enter the card expiry year.', 'alc-woocommerce'),
+            'alc_card_cvc'      => __('Please enter the card CVC.', 'alc-woocommerce'),
         ];
 
         foreach ($required_fields as $field => $message) {
@@ -266,7 +266,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'TWD' => '14',
         ];
 
-        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_number')) ?: '';
+        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('alc_card_number')) ?: '';
         $order_created = $order->get_date_created();
         $bill_number = substr(preg_replace('/\D+/', '', (string) $order->get_id() . ($order_created ? $order_created->getTimestamp() : time())), 0, 30);
         // Combine the order ID with its creation timestamp to keep a digit-only, <=30 char unique bill number per order.
@@ -310,9 +310,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             'email'             => $billing_email,
             'phone'             => $billing_phone,
             'cardNum'           => $card_number,
-            'year'              => substr(preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_expiry_year')), -4),
-            'month'             => str_pad(preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_expiry_month')), 2, '0', STR_PAD_LEFT),
-            'cvv2'              => preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_cvc')),
+            'year'              => substr(preg_replace('/\D+/', '', $this->get_posted_payment_field('alc_expiry_year')), -4),
+            'month'             => str_pad(preg_replace('/\D+/', '', $this->get_posted_payment_field('alc_expiry_month')), 2, '0', STR_PAD_LEFT),
+            'cvv2'              => preg_replace('/\D+/', '', $this->get_posted_payment_field('alc_card_cvc')),
             'productInfo'       => wp_json_encode($order->get_items() ? wp_list_pluck($order->get_items(), 'name') : ['Order #' . $order->get_id()]),
             'ip'                => WC_Geolocation::get_ip_address(),
             'dataTime'          => gmdate('YmdHis'),
@@ -334,10 +334,10 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         /**
          * Allow automated tests to override the final request payload before dispatch.
          */
-        $request_args = apply_filters('wc_allcomet_payment_request_args', $request_args, $order);
+        $request_args = apply_filters('wc_alc_payment_request_args', $request_args, $order);
 
         $response = wp_remote_post(
-            apply_filters('wc_allcomet_payment_endpoint', $endpoint, $order, $request_args),
+            apply_filters('wc_alc_payment_endpoint', $endpoint, $order, $request_args),
             [
                 'timeout' => 60,
                 'body'    => $request_args,
@@ -392,11 +392,11 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         /**
          * Surface responses to automated tests and extensions.
          */
-        do_action('wc_allcomet_payment_response', $parsed_body, $order);
+        do_action('wc_alc_payment_response', $parsed_body, $order);
 
         $transaction_ref = isset($parsed_body['orderNo']) ? sanitize_text_field((string) $parsed_body['orderNo']) : '';
         if ('' !== $transaction_ref) {
-            $order->update_meta_data('_allcomet_transaction_ref', $transaction_ref);
+            $order->update_meta_data('_alc_transaction_ref', $transaction_ref);
         }
 
         $response_code = isset($parsed_body['code']) ? (string) $parsed_body['code'] : '';
@@ -539,9 +539,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
      */
     protected function log_checkout_snapshot(string $context): void
     {
-        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('allcomet_card_number')) ?: '';
-        $expiry_month = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_month'));
-        $expiry_year = sanitize_text_field($this->get_posted_payment_field('allcomet_expiry_year'));
+        $card_number = preg_replace('/\D+/', '', $this->get_posted_payment_field('alc_card_number')) ?: '';
+        $expiry_month = sanitize_text_field($this->get_posted_payment_field('alc_expiry_month'));
+        $expiry_year = sanitize_text_field($this->get_posted_payment_field('alc_expiry_year'));
 
         $prefix = $card_number !== '' ? substr($card_number, 0, 5) : 'n/a';
         $expiry_month = $expiry_month !== '' ? $expiry_month : 'n/a';

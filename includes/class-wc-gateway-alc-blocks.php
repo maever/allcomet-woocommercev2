@@ -10,12 +10,12 @@ defined('ABSPATH') || exit;
 /**
  * Registers the ALC Payment method with WooCommerce Blocks checkout.
  */
-class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
+class WC_Gateway_alc_Blocks extends AbstractPaymentMethodType
 {
     /**
      * Payment method identifier matching the core gateway class.
      */
-    protected $name = 'allcomet';
+    protected $name = 'alc';
 
     /**
      * Initialize integration settings.
@@ -53,7 +53,7 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
      */
     public function get_payment_method_script_handles(): array
     {
-        $handle = 'allcomet-gateway-blocks';
+        $handle = 'alc-gateway-blocks';
 
         if (! wp_script_is($handle, 'registered')) {
             $script_url = plugins_url('assets/js/alc-gateway-blocks.js', ALC_GATEWAY_PLUGIN_FILE);

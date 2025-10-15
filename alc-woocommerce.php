@@ -21,7 +21,7 @@ define('ALC_GATEWAY_PLUGIN_PATH', plugin_dir_path(__FILE__));
 /**
  * Check for WooCommerce dependency on activation.
  */
-function allcomet_gateway_activation_check(): void
+function alc_gateway_activation_check(): void
 {
     if (! class_exists('WooCommerce')) {
         deactivate_plugins(plugin_basename(ALC_GATEWAY_PLUGIN_FILE));
@@ -32,21 +32,21 @@ function allcomet_gateway_activation_check(): void
         );
     }
 }
-register_activation_hook(ALC_GATEWAY_PLUGIN_FILE, 'allcomet_gateway_activation_check');
+register_activation_hook(ALC_GATEWAY_PLUGIN_FILE, 'alc_gateway_activation_check');
 
 /**
  * Load translations.
  */
-function allcomet_gateway_load_textdomain(): void
+function alc_gateway_load_textdomain(): void
 {
     load_plugin_textdomain('alc-woocommerce', false, dirname(plugin_basename(ALC_GATEWAY_PLUGIN_FILE)) . '/languages');
 }
-add_action('init', 'allcomet_gateway_load_textdomain');
+add_action('init', 'alc_gateway_load_textdomain');
 
 /**
  * Load gateway files when WooCommerce is ready.
  */
-function allcomet_gateway_plugins_loaded(): void
+function alc_gateway_plugins_loaded(): void
 {
     if (! class_exists('WC_Payment_Gateway')) {
         return;
@@ -54,7 +54,7 @@ function allcomet_gateway_plugins_loaded(): void
 
     require_once ALC_GATEWAY_PLUGIN_PATH . 'includes/class-wc-gateway-alc.php';
 }
-add_action('plugins_loaded', 'allcomet_gateway_plugins_loaded');
+add_action('plugins_loaded', 'alc_gateway_plugins_loaded');
 
 /**
  * Register gateway with WooCommerce.
@@ -62,18 +62,18 @@ add_action('plugins_loaded', 'allcomet_gateway_plugins_loaded');
  * @param string[] $gateways
  * @return string[]
  */
-function allcomet_gateway_register(array $gateways): array
+function alc_gateway_register(array $gateways): array
 {
-    $gateways[] = 'WC_Gateway_Allcomet';
+    $gateways[] = 'WC_Gateway_alc';
 
     return $gateways;
 }
-add_filter('woocommerce_payment_gateways', 'allcomet_gateway_register');
+add_filter('woocommerce_payment_gateways', 'alc_gateway_register');
 
 /**
  * Register the gateway integration for WooCommerce Blocks checkout.
  */
-function allcomet_gateway_register_blocks_support(): void
+function alc_gateway_register_blocks_support(): void
 {
     if (! class_exists('\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
         return;
@@ -84,11 +84,11 @@ function allcomet_gateway_register_blocks_support(): void
     add_action(
         'woocommerce_blocks_payment_method_type_registration',
         static function (\Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void {
-            $payment_method_registry->register(new WC_Gateway_Allcomet_Blocks());
+            $payment_method_registry->register(new WC_Gateway_alc_Blocks());
         }
     );
 }
-add_action('woocommerce_blocks_loaded', 'allcomet_gateway_register_blocks_support');
+add_action('woocommerce_blocks_loaded', 'alc_gateway_register_blocks_support');
 
 /**
  * Add custom action links on the plugins screen.
@@ -96,21 +96,21 @@ add_action('woocommerce_blocks_loaded', 'allcomet_gateway_register_blocks_suppor
  * @param string[] $links
  * @return string[]
  */
-function allcomet_gateway_plugin_action_links(array $links): array
+function alc_gateway_plugin_action_links(array $links): array
 {
-    $settings_link = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=allcomet')) . '">' .
+    $settings_link = '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=alc')) . '">' .
         esc_html__('Settings', 'alc-woocommerce') . '</a>';
 
     array_unshift($links, $settings_link);
 
     return $links;
 }
-add_filter('plugin_action_links_' . plugin_basename(ALC_GATEWAY_PLUGIN_FILE), 'allcomet_gateway_plugin_action_links');
+add_filter('plugin_action_links_' . plugin_basename(ALC_GATEWAY_PLUGIN_FILE), 'alc_gateway_plugin_action_links');
 
 /**
  * Handle the ALC Payment gateway notifications.
  */
-function allcomet_gateway_handle_notify(): void
+function alc_gateway_handle_notify(): void
 {
     $raw_body = file_get_contents('php://input');
     if ($raw_body === false) {
@@ -140,7 +140,7 @@ function allcomet_gateway_handle_notify(): void
         $payload = [];
     }
 
-    $settings  = get_option('woocommerce_allcomet_settings', []);
+    $settings  = get_option('woocommerce_alc_settings', []);
     $settings  = is_array($settings) ? $settings : [];
     $test_mode = isset($settings['test_mode']) ? $settings['test_mode'] : 'yes';
     $secret_key = 'yes' === $test_mode
@@ -148,7 +148,7 @@ function allcomet_gateway_handle_notify(): void
         : (string) ($settings['live_secret_key'] ?? '');
 
     if ('' === $secret_key) {
-        wc_get_logger()->error('ALC Payment notify secret key missing for signature verification.', ['source' => 'allcomet']);
+        wc_get_logger()->error('ALC Payment notify secret key missing for signature verification.', ['source' => 'alc']);
         wp_send_json_error(['message' => __('Signature verification failed.', 'alc-woocommerce')], 400);
 
         return;
@@ -176,7 +176,7 @@ function allcomet_gateway_handle_notify(): void
         $sanitized_snapshot = wc_clean($payload);
         wc_get_logger()->error(
             'ALC Payment notify signature verification failed: ' . wp_json_encode($sanitized_snapshot),
-            ['source' => 'allcomet']
+            ['source' => 'alc']
         );
         wp_send_json_error(['message' => __('Signature verification failed.', 'alc-woocommerce')], 400);
 
@@ -186,9 +186,9 @@ function allcomet_gateway_handle_notify(): void
     $sanitized_snapshot = wc_clean($payload);
     wc_get_logger()->info(
         'ALC Payment notify payload verified: ' . wp_json_encode($sanitized_snapshot),
-        ['source' => 'allcomet']
+        ['source' => 'alc']
     );
 
     wp_send_json_success();
 }
-add_action( 'woocommerce_api_alc-notify', 'allcomet_gateway_handle_notify' );
+add_action( 'woocommerce_api_alc-notify', 'alc_gateway_handle_notify' );

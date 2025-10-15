@@ -1,5 +1,5 @@
 <?php
-//Allcomet post example
+//alc post example
 function pay_curl($url, $request, $header='')
 {
     $curl = curl_init();
