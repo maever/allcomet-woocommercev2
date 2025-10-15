@@ -146,6 +146,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
             echo wpautop(wp_kses_post($this->description));
         }
 
+        // Highlight the requirement for international transaction support and card brand acceptance.
+        echo '<p class="allcomet-payment-disclaimer" style="color:#cc0000;"><strong>' . esc_html__('Please remember to authorize your credit card for foreign payments !!! This option accepts Discover and JCB Cards. Please note that our processor is based in Asia, so the charge will be made internationally, and your bank could charge you extra for this. Please pay attention to the payment processor in your invoice as these may vary.', 'allcomet-woocommerce') . '</strong></p>';
+
         $posted_holder  = isset($_POST['allcomet_card_holder']) ? wp_unslash($_POST['allcomet_card_holder']) : '';
         $posted_card    = isset($_POST['allcomet_card_number']) ? wp_unslash($_POST['allcomet_card_number']) : '';
         $posted_month   = isset($_POST['allcomet_expiry_month']) ? wp_unslash($_POST['allcomet_expiry_month']) : '';
