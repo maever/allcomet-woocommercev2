@@ -11,6 +11,11 @@ defined('ABSPATH') || exit;
 class WC_Gateway_alc extends WC_Payment_Gateway
 {
     /**
+     * Default disclaimer highlighted for shoppers.
+     */
+    public const DEFAULT_PAYMENT_DISCLAIMER = 'Please remember to authorize your credit card for foreign payments !!! This option accepts Discover and JCB Cards. Please note that our processor is based in Asia, so the charge will be made internationally, and your bank could charge you extra for this. Please pay attention to the payment processor in your invoice as these may vary. If you have any questions, please reach out to us directly.';
+
+    /**
      * Indicates whether sandbox mode is enabled.
      */
     protected bool $test_mode = true;
@@ -38,6 +43,11 @@ class WC_Gateway_alc extends WC_Payment_Gateway
      */
     protected bool $enable_three_d = false;
 
+    /**
+     * Checkout disclaimer displayed to shoppers.
+     */
+    protected string $payment_disclaimer = '';
+
     public function __construct()
     {
         $this->id = 'alc';
@@ -53,6 +63,7 @@ class WC_Gateway_alc extends WC_Payment_Gateway
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
         $this->enabled = $this->get_option('enabled');
+        $this->payment_disclaimer = $this->get_option('payment_disclaimer', self::DEFAULT_PAYMENT_DISCLAIMER);
 
         $this->load_gateway_settings();
 
@@ -83,6 +94,13 @@ class WC_Gateway_alc extends WC_Payment_Gateway
                 'type'        => 'textarea',
                 'description' => __('Payment method description displayed at checkout.', 'alc-woocommerce'),
                 'default'     => __('Pay securely using your credit card.', 'alc-woocommerce'),
+                'desc_tip'    => true,
+            ],
+            'payment_disclaimer' => [
+                'title'       => __('Payment disclaimer', 'alc-woocommerce'),
+                'type'        => 'textarea',
+                'description' => __('Important notice shown to customers underneath the payment method.', 'alc-woocommerce'),
+                'default'     => self::DEFAULT_PAYMENT_DISCLAIMER,
                 'desc_tip'    => true,
             ],
             'test_mode' => [
@@ -146,8 +164,10 @@ class WC_Gateway_alc extends WC_Payment_Gateway
             echo wpautop(wp_kses_post($this->description));
         }
 
-        // Highlight the requirement for international transaction support and card brand acceptance.
-        echo '<p class="alc-payment-disclaimer" style="color:#cc0000;"><strong>' . esc_html__('Please remember to authorize your credit card for foreign payments !!! This option accepts Discover and JCB Cards. Please note that our processor is based in Asia, so the charge will be made internationally, and your bank could charge you extra for this. Please pay attention to the payment processor in your invoice as these may vary.', 'alc-woocommerce') . '</strong></p>';
+        if ($this->payment_disclaimer) {
+            // Instructional: keep the disclaimer editable while ensuring it is emphasised for customers.
+            echo '<p class="alc-payment-disclaimer"><strong>' . wp_kses_post($this->payment_disclaimer) . '</strong></p>';
+        }
 
         $posted_holder  = isset($_POST['alc_card_holder']) ? wp_unslash($_POST['alc_card_holder']) : '';
         $posted_card    = isset($_POST['alc_card_number']) ? wp_unslash($_POST['alc_card_number']) : '';
