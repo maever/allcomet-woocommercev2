@@ -186,9 +186,6 @@
         return createElement(
             Fragment,
             {},
-            description
-                ? createElement('p', { className: `${gatewayPrefix}-description` }, description)
-                : null,
             disclaimer
                 ? createElement(
                       'p',
