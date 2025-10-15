@@ -15,6 +15,7 @@
         getSetting(`${legacyPrefix}_data`, {});
     const label = settings.title || __('Credit Card', 'alc-woocommerce');
     const description = settings.description || '';
+    const disclaimer = settings.paymentDisclaimer || '';
 
     const errorMessages = Object.assign(
         {
@@ -185,6 +186,16 @@
         return createElement(
             Fragment,
             {},
+            description
+                ? createElement('p', { className: `${gatewayPrefix}-description` }, description)
+                : null,
+            disclaimer
+                ? createElement(
+                      'p',
+                      { className: `${gatewayPrefix}-payment-disclaimer` },
+                      createElement('strong', null, disclaimer)
+                  )
+                : null,
             Field({
                 id: `${gatewayPrefix}-card-holder`,
                 labelText: __('Card holder name', 'alc-woocommerce'),

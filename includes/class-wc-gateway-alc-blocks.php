@@ -33,6 +33,7 @@ class WC_Gateway_alc_Blocks extends AbstractPaymentMethodType
                 'enabled'     => 'no',
                 'title'       => __('Credit Card', 'alc-woocommerce'),
                 'description' => __('Pay securely using your credit card.', 'alc-woocommerce'),
+                'payment_disclaimer' => WC_Gateway_alc::DEFAULT_PAYMENT_DISCLAIMER,
             ],
             $settings
         );
@@ -87,6 +88,7 @@ class WC_Gateway_alc_Blocks extends AbstractPaymentMethodType
         return [
             'title'       => $this->get_setting('title'),
             'description' => $this->get_setting('description'),
+            'paymentDisclaimer' => $this->get_setting('payment_disclaimer', WC_Gateway_alc::DEFAULT_PAYMENT_DISCLAIMER),
             'supports'    => ['products'],
             'i18n'        => [
                 'cardHolder'  => __('Please enter the card holder name.', 'alc-woocommerce'),
