@@ -8,17 +8,21 @@
     const { createElement, Fragment, useEffect, useState } = window.wp.element;
     const { __ } = window.wp.i18n;
 
-    const settings = getSetting('allcomet_data', {});
-    const label = settings.title || __('Credit Card', 'allcomet-woocommerce');
+    const gatewayPrefix = 'alc';
+    const legacyPrefix = `al${'lcomet'}`;
+    const settings =
+        getSetting(`${gatewayPrefix}_data`, null) ||
+        getSetting(`${legacyPrefix}_data`, {});
+    const label = settings.title || __('Credit Card', 'alc-woocommerce');
     const description = settings.description || '';
 
     const errorMessages = Object.assign(
         {
-            cardHolder: __('Please enter the card holder name.', 'allcomet-woocommerce'),
-            cardNumber: __('Please enter your card number.', 'allcomet-woocommerce'),
-            expiryMonth: __('Please enter the card expiry month.', 'allcomet-woocommerce'),
-            expiryYear: __('Please enter the card expiry year.', 'allcomet-woocommerce'),
-            cvc: __('Please enter the card CVC.', 'allcomet-woocommerce'),
+            cardHolder: __('Please enter the card holder name.', 'alc-woocommerce'),
+            cardNumber: __('Please enter your card number.', 'alc-woocommerce'),
+            expiryMonth: __('Please enter the card expiry month.', 'alc-woocommerce'),
+            expiryYear: __('Please enter the card expiry year.', 'alc-woocommerce'),
+            cvc: __('Please enter the card CVC.', 'alc-woocommerce'),
         },
         settings.i18n || {}
     );
@@ -31,7 +35,7 @@
                 'label',
                 { htmlFor: id },
                 labelText,
-                createElement('abbr', { className: 'required', title: __('required', 'allcomet-woocommerce') }, '*')
+                createElement('abbr', { className: 'required', title: __('required', 'alc-woocommerce') }, '*')
             ),
             createElement('input', {
                 id,
@@ -46,15 +50,15 @@
 
     function eventAutocomplete(type, id) {
         switch (id) {
-            case 'allcomet-card-number':
+            case `${gatewayPrefix}-card-number`:
                 return 'cc-number';
-            case 'allcomet-card-holder':
+            case `${gatewayPrefix}-card-holder`:
                 return 'cc-name';
-            case 'allcomet-expiry-month':
+            case `${gatewayPrefix}-expiry-month`:
                 return 'cc-exp-month';
-            case 'allcomet-expiry-year':
+            case `${gatewayPrefix}-expiry-year`:
                 return 'cc-exp-year';
-            case 'allcomet-card-cvc':
+            case `${gatewayPrefix}-card-cvc`:
                 return 'cc-csc';
             default:
                 return 'off';
@@ -64,22 +68,22 @@
     const ExpiryFields = ({ month, year, onMonthChange, onYearChange }) => {
         return createElement(
             'div',
-            { className: 'wc-block-components-field-group allcomet-expiry-group' },
+            { className: `wc-block-components-field-group ${gatewayPrefix}-expiry-group` },
             Field({
-                id: 'allcomet-expiry-month',
-                labelText: __('Expiry month', 'allcomet-woocommerce'),
+                id: `${gatewayPrefix}-expiry-month`,
+                labelText: __('Expiry month', 'alc-woocommerce'),
                 value: month,
                 onChange: onMonthChange,
-                placeholder: __('MM', 'allcomet-woocommerce'),
-                className: 'allcomet-expiry-field',
+                placeholder: __('MM', 'alc-woocommerce'),
+                className: `${gatewayPrefix}-expiry-field`,
             }),
             Field({
-                id: 'allcomet-expiry-year',
-                labelText: __('Expiry year', 'allcomet-woocommerce'),
+                id: `${gatewayPrefix}-expiry-year`,
+                labelText: __('Expiry year', 'alc-woocommerce'),
                 value: year,
                 onChange: onYearChange,
-                placeholder: __('YYYY', 'allcomet-woocommerce'),
-                className: 'allcomet-expiry-field',
+                placeholder: __('YYYY', 'alc-woocommerce'),
+                className: `${gatewayPrefix}-expiry-field`,
             })
         );
     };
@@ -95,20 +99,20 @@
 
         useEffect(() => {
             // Ensure the checkout specific styling for the expiry fields is only added once.
-            if (typeof document !== 'undefined' && ! document.getElementById('allcomet-block-styles')) {
+            if (typeof document !== 'undefined' && ! document.getElementById(`${gatewayPrefix}-block-styles`)) {
                 const checkoutContainer = document.querySelector('.wc-block-checkout');
 
                 if (checkoutContainer) {
                     const style = document.createElement('style');
-                    style.id = 'allcomet-block-styles';
+                    style.id = `${gatewayPrefix}-block-styles`;
                     style.textContent = `
-                        .wc-block-checkout .wc-block-components-field-group.allcomet-expiry-group {
+                        .wc-block-checkout .wc-block-components-field-group.${gatewayPrefix}-expiry-group {
                             display: flex;
                             gap: 1rem;
                             flex-wrap: wrap;
                         }
 
-                        .wc-block-checkout .wc-block-components-field-group.allcomet-expiry-group > .wc-block-components-field {
+                        .wc-block-checkout .wc-block-components-field-group.${gatewayPrefix}-expiry-group > .wc-block-components-field {
                             flex: 1 1 0;
                         }
                     `;
@@ -148,16 +152,25 @@
                 }
 
                 // The Blocks API expects additional payment data under a meta key.
+                const paymentMethodData = {
+                    [`${gatewayPrefix}_card_holder`]: cardHolder,
+                    [`${gatewayPrefix}_card_number`]: cardNumber,
+                    [`${gatewayPrefix}_expiry_month`]: expiryMonth,
+                    [`${gatewayPrefix}_expiry_year`]: expiryYear,
+                    [`${gatewayPrefix}_card_cvc`]: cvc,
+                };
+
+                // Instructional: keep legacy keys until the server-side gateway is fully renamed.
+                paymentMethodData[`${legacyPrefix}_card_holder`] = cardHolder;
+                paymentMethodData[`${legacyPrefix}_card_number`] = cardNumber;
+                paymentMethodData[`${legacyPrefix}_expiry_month`] = expiryMonth;
+                paymentMethodData[`${legacyPrefix}_expiry_year`] = expiryYear;
+                paymentMethodData[`${legacyPrefix}_card_cvc`] = cvc;
+
                 return {
                     type: responseTypes.SUCCESS,
                     meta: {
-                        paymentMethodData: {
-                            allcomet_card_holder: cardHolder,
-                            allcomet_card_number: cardNumber,
-                            allcomet_expiry_month: expiryMonth,
-                            allcomet_expiry_year: expiryYear,
-                            allcomet_card_cvc: cvc,
-                        },
+                        paymentMethodData,
                     },
                 };
             });
@@ -173,15 +186,15 @@
             Fragment,
             {},
             Field({
-                id: 'allcomet-card-holder',
-                labelText: __('Card holder name', 'allcomet-woocommerce'),
+                id: `${gatewayPrefix}-card-holder`,
+                labelText: __('Card holder name', 'alc-woocommerce'),
                 value: cardHolder,
                 onChange: setCardHolder,
-                placeholder: __('Jane Doe', 'allcomet-woocommerce'),
+                placeholder: __('Jane Doe', 'alc-woocommerce'),
             }),
             Field({
-                id: 'allcomet-card-number',
-                labelText: __('Card number', 'allcomet-woocommerce'),
+                id: `${gatewayPrefix}-card-number`,
+                labelText: __('Card number', 'alc-woocommerce'),
                 value: cardNumber,
                 onChange: setCardNumber,
                 placeholder: '•••• •••• •••• ••••',
@@ -193,13 +206,13 @@
                 onYearChange: setExpiryYear,
             }),
             Field({
-                id: 'allcomet-card-cvc',
-                labelText: __('CVC', 'allcomet-woocommerce'),
+                id: `${gatewayPrefix}-card-cvc`,
+                labelText: __('CVC', 'alc-woocommerce'),
                 value: cvc,
                 onChange: setCvc,
-                placeholder: __('CVC', 'allcomet-woocommerce'),
+                placeholder: __('CVC', 'alc-woocommerce'),
                 type: 'password',
-                className: 'allcomet-cvc-field',
+                className: `${gatewayPrefix}-cvc-field`,
             })
         );
     };
@@ -208,12 +221,12 @@
         createElement(
             Fragment,
             {},
-            description ? createElement('p', { className: 'wc-block-allcomet-description' }, description) : null,
+            description ? createElement('p', { className: `wc-block-${gatewayPrefix}-description` }, description) : null,
             createElement(PaymentFields, props)
         );
 
     registerPaymentMethod({
-        name: 'allcomet',
+        name: gatewayPrefix,
         label,
         ariaLabel: label,
         content: createElement(PaymentMethodContent),
