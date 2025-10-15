@@ -122,7 +122,18 @@
                 }
             }
 
-            const unsubscribe = eventRegistration.onPaymentProcessing(() => {
+            // Instructional: prefer the new onPaymentSetup hook when available and fall back to the
+            // deprecated onPaymentProcessing callback for older WooCommerce Blocks versions.
+            const registerPaymentEvent =
+                eventRegistration && typeof eventRegistration.onPaymentSetup === 'function'
+                    ? eventRegistration.onPaymentSetup
+                    : eventRegistration.onPaymentProcessing;
+
+            if (typeof registerPaymentEvent !== 'function') {
+                return () => {};
+            }
+
+            const unsubscribe = registerPaymentEvent(() => {
                 const errors = [];
 
                 if (! cardHolder) {
