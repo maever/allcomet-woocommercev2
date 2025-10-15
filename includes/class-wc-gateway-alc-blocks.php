@@ -31,8 +31,8 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
         $this->settings = array_merge(
             [
                 'enabled'     => 'no',
-                'title'       => __('Credit Card', 'allcomet-woocommerce'),
-                'description' => __('Pay securely using your credit card.', 'allcomet-woocommerce'),
+                'title'       => __('Credit Card', 'alc-woocommerce'),
+                'description' => __('Pay securely using your credit card.', 'alc-woocommerce'),
             ],
             $settings
         );
@@ -56,7 +56,7 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
         $handle = 'allcomet-gateway-blocks';
 
         if (! wp_script_is($handle, 'registered')) {
-            $script_url = plugins_url('assets/js/alc-gateway-blocks.js', ALLCOMET_GATEWAY_PLUGIN_FILE);
+            $script_url = plugins_url('assets/js/alc-gateway-blocks.js', ALC_GATEWAY_PLUGIN_FILE);
 
             wp_register_script(
                 $handle,
@@ -67,11 +67,11 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
                     'wp-element',
                     'wp-i18n',
                 ],
-                ALLCOMET_GATEWAY_VERSION,
+                ALC_GATEWAY_VERSION,
                 true
             );
 
-            wp_set_script_translations($handle, 'alc-woocommerce', dirname(plugin_basename(ALLCOMET_GATEWAY_PLUGIN_FILE)) . '/languages');
+            wp_set_script_translations($handle, 'alc-woocommerce', dirname(plugin_basename(ALC_GATEWAY_PLUGIN_FILE)) . '/languages');
         }
 
         return [$handle];
@@ -89,11 +89,11 @@ class WC_Gateway_Allcomet_Blocks extends AbstractPaymentMethodType
             'description' => $this->get_setting('description'),
             'supports'    => ['products'],
             'i18n'        => [
-                'cardHolder'  => __('Please enter the card holder name.', 'allcomet-woocommerce'),
-                'cardNumber'  => __('Please enter your card number.', 'allcomet-woocommerce'),
-                'expiryMonth' => __('Please enter the card expiry month.', 'allcomet-woocommerce'),
-                'expiryYear'  => __('Please enter the card expiry year.', 'allcomet-woocommerce'),
-                'cvc'         => __('Please enter the card CVC.', 'allcomet-woocommerce'),
+                'cardHolder'  => __('Please enter the card holder name.', 'alc-woocommerce'),
+                'cardNumber'  => __('Please enter your card number.', 'alc-woocommerce'),
+                'expiryMonth' => __('Please enter the card expiry month.', 'alc-woocommerce'),
+                'expiryYear'  => __('Please enter the card expiry year.', 'alc-woocommerce'),
+                'cvc'         => __('Please enter the card CVC.', 'alc-woocommerce'),
             ],
         ];
     }

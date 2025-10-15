@@ -42,8 +42,8 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
     {
         $this->id = 'allcomet';
         $this->icon = ''; // Add 32x32 icon URL when assets are ready.
-        $this->method_title = __('Credit Card', 'allcomet-woocommerce');
-        $this->method_description = __('Accept credit card payments securely through this gateway.', 'allcomet-woocommerce');
+        $this->method_title = __('Credit Card', 'alc-woocommerce');
+        $this->method_description = __('Accept credit card payments securely through this gateway.', 'alc-woocommerce');
         $this->has_fields = true;
         $this->supports = ['products'];
 
@@ -66,72 +66,72 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
     {
         $this->form_fields = [
             'enabled' => [
-                'title'   => __('Enable/Disable', 'allcomet-woocommerce'),
+                'title'   => __('Enable/Disable', 'alc-woocommerce'),
                 'type'    => 'checkbox',
-                'label'   => __('Enable credit card payments', 'allcomet-woocommerce'),
+                'label'   => __('Enable credit card payments', 'alc-woocommerce'),
                 'default' => 'no',
             ],
             'title' => [
-                'title'       => __('Title', 'allcomet-woocommerce'),
+                'title'       => __('Title', 'alc-woocommerce'),
                 'type'        => 'text',
-                'description' => __('Title shown to customers during checkout.', 'allcomet-woocommerce'),
-                'default'     => __('Credit Card', 'allcomet-woocommerce'),
+                'description' => __('Title shown to customers during checkout.', 'alc-woocommerce'),
+                'default'     => __('Credit Card', 'alc-woocommerce'),
                 'desc_tip'    => true,
             ],
             'description' => [
-                'title'       => __('Description', 'allcomet-woocommerce'),
+                'title'       => __('Description', 'alc-woocommerce'),
                 'type'        => 'textarea',
-                'description' => __('Payment method description displayed at checkout.', 'allcomet-woocommerce'),
-                'default'     => __('Pay securely using your credit card.', 'allcomet-woocommerce'),
+                'description' => __('Payment method description displayed at checkout.', 'alc-woocommerce'),
+                'default'     => __('Pay securely using your credit card.', 'alc-woocommerce'),
                 'desc_tip'    => true,
             ],
             'test_mode' => [
-                'title'       => __('Test mode', 'allcomet-woocommerce'),
+                'title'       => __('Test mode', 'alc-woocommerce'),
                 'type'        => 'checkbox',
-                'label'       => __('Enable sandbox (test) mode', 'allcomet-woocommerce'),
+                'label'       => __('Enable sandbox (test) mode', 'alc-woocommerce'),
                 'default'     => 'yes',
-                'description' => __('Use sandbox credentials for development and testing.', 'allcomet-woocommerce'),
+                'description' => __('Use sandbox credentials for development and testing.', 'alc-woocommerce'),
             ],
             'enable_three_d' => [
-                'title'       => __('3D Secure', 'allcomet-woocommerce'),
+                'title'       => __('3D Secure', 'alc-woocommerce'),
                 'type'        => 'checkbox',
-                'label'       => __('Forward shoppers to 3D Secure when required.', 'allcomet-woocommerce'),
+                'label'       => __('Forward shoppers to 3D Secure when required.', 'alc-woocommerce'),
                 'default'     => 'no',
-                'description' => __('When enabled the gateway will request 3D Secure authentication and redirect customers to the auth3DUrl provided by the payment processor.', 'allcomet-woocommerce'),
+                'description' => __('When enabled the gateway will request 3D Secure authentication and redirect customers to the auth3DUrl provided by the payment processor.', 'alc-woocommerce'),
                 'desc_tip'    => true,
             ],
             'sandbox_credentials_title' => [
-                'title'       => __('Sandbox credentials', 'allcomet-woocommerce'),
+                'title'       => __('Sandbox credentials', 'alc-woocommerce'),
                 'type'        => 'title',
-                'description' => __('Enter the ALC Payment sandbox (test) credentials supplied for development.', 'allcomet-woocommerce'),
+                'description' => __('Enter the ALC Payment sandbox (test) credentials supplied for development.', 'alc-woocommerce'),
             ],
             'test_merchant_id' => [
-                'title'       => __('Sandbox Merchant ID', 'allcomet-woocommerce'),
+                'title'       => __('Sandbox Merchant ID', 'alc-woocommerce'),
                 'type'        => 'text',
-                'description' => __('Your ALC Payment sandbox merchant identifier.', 'allcomet-woocommerce'),
+                'description' => __('Your ALC Payment sandbox merchant identifier.', 'alc-woocommerce'),
                 'default'     => '',
             ],
             'test_secret_key' => [
-                'title'       => __('Sandbox Secret Key', 'allcomet-woocommerce'),
+                'title'       => __('Sandbox Secret Key', 'alc-woocommerce'),
                 'type'        => 'password',
-                'description' => __('API key used to authenticate requests against the ALC Payment sandbox environment.', 'allcomet-woocommerce'),
+                'description' => __('API key used to authenticate requests against the ALC Payment sandbox environment.', 'alc-woocommerce'),
                 'default'     => '',
             ],
             'production_credentials_title' => [
-                'title'       => __('Production credentials', 'allcomet-woocommerce'),
+                'title'       => __('Production credentials', 'alc-woocommerce'),
                 'type'        => 'title',
-                'description' => __('Enter the live credentials that will be used when test mode is disabled.', 'allcomet-woocommerce'),
+                'description' => __('Enter the live credentials that will be used when test mode is disabled.', 'alc-woocommerce'),
             ],
             'live_merchant_id' => [
-                'title'       => __('Production Merchant ID', 'allcomet-woocommerce'),
+                'title'       => __('Production Merchant ID', 'alc-woocommerce'),
                 'type'        => 'text',
-                'description' => __('Your ALC Payment production merchant identifier.', 'allcomet-woocommerce'),
+                'description' => __('Your ALC Payment production merchant identifier.', 'alc-woocommerce'),
                 'default'     => '',
             ],
             'live_secret_key' => [
-                'title'       => __('Production Secret Key', 'allcomet-woocommerce'),
+                'title'       => __('Production Secret Key', 'alc-woocommerce'),
                 'type'        => 'password',
-                'description' => __('API key used to authenticate requests against the ALC Payment production environment.', 'allcomet-woocommerce'),
+                'description' => __('API key used to authenticate requests against the ALC Payment production environment.', 'alc-woocommerce'),
                 'default'     => '',
             ],
         ];
@@ -147,7 +147,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         }
 
         // Highlight the requirement for international transaction support and card brand acceptance.
-        echo '<p class="allcomet-payment-disclaimer" style="color:#cc0000;"><strong>' . esc_html__('Please remember to authorize your credit card for foreign payments !!! This option accepts Discover and JCB Cards. Please note that our processor is based in Asia, so the charge will be made internationally, and your bank could charge you extra for this. Please pay attention to the payment processor in your invoice as these may vary.', 'allcomet-woocommerce') . '</strong></p>';
+        echo '<p class="allcomet-payment-disclaimer" style="color:#cc0000;"><strong>' . esc_html__('Please remember to authorize your credit card for foreign payments !!! This option accepts Discover and JCB Cards. Please note that our processor is based in Asia, so the charge will be made internationally, and your bank could charge you extra for this. Please pay attention to the payment processor in your invoice as these may vary.', 'alc-woocommerce') . '</strong></p>';
 
         $posted_holder  = isset($_POST['allcomet_card_holder']) ? wp_unslash($_POST['allcomet_card_holder']) : '';
         $posted_card    = isset($_POST['allcomet_card_number']) ? wp_unslash($_POST['allcomet_card_number']) : '';
@@ -158,19 +158,19 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         echo '<fieldset id="wc-allcomet-cc-form" class="wc-credit-card-form wc-payment-form">';
         // Persist the card holder for both classic checkout and Blocks submissions.
         echo '<p class="form-row form-row-wide">';
-        echo '<label for="allcomet_card_holder">' . esc_html__('Card holder name', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
-        echo '<input id="allcomet_card_holder" name="allcomet_card_holder" type="text" autocomplete="cc-name" placeholder="' . esc_attr__('Jane Doe', 'allcomet-woocommerce') . '" value="' . esc_attr($posted_holder) . '" />';
+        echo '<label for="allcomet_card_holder">' . esc_html__('Card holder name', 'alc-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<input id="allcomet_card_holder" name="allcomet_card_holder" type="text" autocomplete="cc-name" placeholder="' . esc_attr__('Jane Doe', 'alc-woocommerce') . '" value="' . esc_attr($posted_holder) . '" />';
         echo '</p>';
 
         echo '<p class="form-row form-row-wide">';
-        echo '<label for="allcomet_card_number">' . esc_html__('Card number', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<label for="allcomet_card_number">' . esc_html__('Card number', 'alc-woocommerce') . ' <span class="required">*</span></label>';
         echo '<input id="allcomet_card_number" name="allcomet_card_number" type="text" autocomplete="cc-number" placeholder="•••• •••• •••• ••••" value="' . esc_attr($posted_card) . '" />';
         echo '</p>';
 
         echo '<style>#wc-allcomet-cc-form .allcomet-expiry-group{display:flex;gap:8px}#wc-allcomet-cc-form .allcomet-expiry-group .input-text{flex:1}#wc-allcomet-cc-form .allcomet-cvc-field input{max-width:140px}</style>';
 
         echo '<p class="form-row form-row-first allcomet-expiry-field">';
-        echo '<label for="allcomet_expiry_month">' . esc_html__('Expiry', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<label for="allcomet_expiry_month">' . esc_html__('Expiry', 'alc-woocommerce') . ' <span class="required">*</span></label>';
         echo '<span class="allcomet-expiry-group">';
         echo '<input id="allcomet_expiry_month" class="input-text" name="allcomet_expiry_month" type="text" autocomplete="cc-exp-month" placeholder="MM" value="' . esc_attr($posted_month) . '" />';
         echo '<input id="allcomet_expiry_year" class="input-text" name="allcomet_expiry_year" type="text" autocomplete="cc-exp-year" placeholder="YYYY" value="' . esc_attr($posted_year) . '" />';
@@ -178,7 +178,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         echo '</p>';
 
         echo '<p class="form-row form-row-last allcomet-cvc-field">';
-        echo '<label for="allcomet_card_cvc">' . esc_html__('CVC', 'allcomet-woocommerce') . ' <span class="required">*</span></label>';
+        echo '<label for="allcomet_card_cvc">' . esc_html__('CVC', 'alc-woocommerce') . ' <span class="required">*</span></label>';
         echo '<input id="allcomet_card_cvc" name="allcomet_card_cvc" type="password" autocomplete="cc-csc" placeholder="CVC" value="' . esc_attr($posted_cvc) . '" />';
         echo '</p>';
 
@@ -194,11 +194,11 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $this->log_checkout_snapshot('Validation snapshot');
 
         $required_fields = [
-            'allcomet_card_holder'   => __('Please enter the card holder name.', 'allcomet-woocommerce'),
-            'allcomet_card_number'   => __('Please enter your card number.', 'allcomet-woocommerce'),
-            'allcomet_expiry_month'  => __('Please enter the card expiry month.', 'allcomet-woocommerce'),
-            'allcomet_expiry_year'   => __('Please enter the card expiry year.', 'allcomet-woocommerce'),
-            'allcomet_card_cvc'      => __('Please enter the card CVC.', 'allcomet-woocommerce'),
+            'allcomet_card_holder'   => __('Please enter the card holder name.', 'alc-woocommerce'),
+            'allcomet_card_number'   => __('Please enter your card number.', 'alc-woocommerce'),
+            'allcomet_expiry_month'  => __('Please enter the card expiry month.', 'alc-woocommerce'),
+            'allcomet_expiry_year'   => __('Please enter the card expiry year.', 'alc-woocommerce'),
+            'allcomet_card_cvc'      => __('Please enter the card CVC.', 'alc-woocommerce'),
         ];
 
         foreach ($required_fields as $field => $message) {
@@ -238,7 +238,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
 
         if (! $order) {
-            wc_add_notice(__('Unable to initialize the credit card payment.', 'allcomet-woocommerce'), 'error');
+            wc_add_notice(__('Unable to initialize the credit card payment.', 'alc-woocommerce'), 'error');
 
             return [
                 'result'   => 'failure',
@@ -346,7 +346,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         if (is_wp_error($response)) {
             wc_get_logger()->error($response->get_error_message(), ['source' => $this->id]);
-            wc_add_notice(__('Payment error: please try again or use a different card.', 'allcomet-woocommerce'), 'error');
+            wc_add_notice(__('Payment error: please try again or use a different card.', 'alc-woocommerce'), 'error');
 
             return [
                 'result'   => 'failure',
@@ -375,7 +375,7 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
                 'ALC Payment response signature verification failed: ' . wp_json_encode($safe_log_data),
                 ['source' => $this->id]
             );
-            wc_add_notice(__('Payment error: please try again or use a different card.', 'allcomet-woocommerce'), 'error');
+            wc_add_notice(__('Payment error: please try again or use a different card.', 'alc-woocommerce'), 'error');
 
             return [
                 'result'   => 'failure',
@@ -406,8 +406,8 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
             if ($this->enable_three_d && '' !== $auth_url) {
                 // Documented 3DS hand-off: ALC Payment expects the shopper to complete authentication at the supplied URL.
-                $order->update_status('pending', __('Awaiting 3D Secure authentication.', 'allcomet-woocommerce'));
-                $order->add_order_note(__('Customer redirected to 3D Secure authentication.', 'allcomet-woocommerce'));
+                $order->update_status('pending', __('Awaiting 3D Secure authentication.', 'alc-woocommerce'));
+                $order->add_order_note(__('Customer redirected to 3D Secure authentication.', 'alc-woocommerce'));
                 $order->save();
 
                 return [
@@ -418,9 +418,9 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
         }
 
         if ('P0001' !== $response_code) {
-            $message = isset($parsed_body['message']) ? wp_strip_all_tags((string) $parsed_body['message']) : __('Unable to process the credit card payment.', 'allcomet-woocommerce');
+            $message = isset($parsed_body['message']) ? wp_strip_all_tags((string) $parsed_body['message']) : __('Unable to process the credit card payment.', 'alc-woocommerce');
             // Provide customers with a consistently formatted failure notice.
-            $formatted_notice = sprintf(__('Transaction failed, error: %s', 'allcomet-woocommerce'), $message);
+            $formatted_notice = sprintf(__('Transaction failed, error: %s', 'alc-woocommerce'), $message);
             wc_add_notice($formatted_notice, 'error');
 
             return [
@@ -431,8 +431,8 @@ class WC_Gateway_Allcomet extends WC_Payment_Gateway
 
         $order->add_order_note(
             sprintf(
-                __('Transaction approved. Reference: %s', 'allcomet-woocommerce'),
-                $transaction_ref ?: __('not provided', 'allcomet-woocommerce')
+                __('Transaction approved. Reference: %s', 'alc-woocommerce'),
+                $transaction_ref ?: __('not provided', 'alc-woocommerce')
             )
         );
 
