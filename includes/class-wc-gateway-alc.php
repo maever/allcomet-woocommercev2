@@ -160,12 +160,22 @@ class WC_Gateway_alc extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
-        parent::payment_fields();
+        $description = $this->get_description();
+
+        if ($description) {
+            // Instructional: render the admin defined description only once to avoid duplicate checkout messaging.
+            echo wp_kses_post(wpautop(wptexturize($description)));
+        }
 
         if ($this->payment_disclaimer) {
             // Instructional: keep the disclaimer editable while ensuring it is emphasised for customers.
             echo '<p class="alc-payment-disclaimer"><strong>' . wp_kses_post($this->payment_disclaimer) . '</strong></p>';
         }
+
+        // Mirror the WooCommerce core credit card form hooks so custom code can still inject fields if needed.
+        do_action('woocommerce_credit_card_form_start', $this->id);
+
+        wp_enqueue_script('wc-credit-card-form');
 
         $posted_holder  = isset($_POST['alc_card_holder']) ? wp_unslash($_POST['alc_card_holder']) : '';
         $posted_card    = isset($_POST['alc_card_number']) ? wp_unslash($_POST['alc_card_number']) : '';
@@ -202,6 +212,8 @@ class WC_Gateway_alc extends WC_Payment_Gateway
 
         echo '<div class="clear"></div>';
         echo '</fieldset>';
+
+        do_action('woocommerce_credit_card_form_end', $this->id);
     }
 
     /**
