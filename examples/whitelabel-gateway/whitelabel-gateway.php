@@ -14,6 +14,9 @@ define('WL_GATEWAY_ID', 'example_gateway');
 
 define('WL_GATEWAY_PLUGIN_FILE', __FILE__);
 
+// Keeping a version constant makes it easier to bust browser caches for scripts and styles.
+define('WL_GATEWAY_VERSION', '0.1.0');
+
 define('WL_GATEWAY_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
 /**
@@ -45,3 +48,25 @@ function wl_gateway_register(array $gateways): array
     return $gateways;
 }
 add_filter('woocommerce_payment_gateways', 'wl_gateway_register');
+
+/**
+ * Register the gateway integration with WooCommerce Blocks checkout.
+ */
+function wl_gateway_register_blocks_support(): void
+{
+    if (! class_exists('\\Automattic\\WooCommerce\\Blocks\\Payments\\Integrations\\AbstractPaymentMethodType')) {
+        // Exit early when the store is still using shortcode checkout only.
+        return;
+    }
+
+    require_once WL_GATEWAY_PLUGIN_PATH . 'class-wc-gateway-example-blocks.php';
+
+    add_action(
+        'woocommerce_blocks_payment_method_type_registration',
+        static function (\Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void {
+            // Register the payment method type so it appears in the block based checkout.
+            $payment_method_registry->register(new WC_Gateway_Example_Blocks());
+        }
+    );
+}
+add_action('woocommerce_blocks_loaded', 'wl_gateway_register_blocks_support');
