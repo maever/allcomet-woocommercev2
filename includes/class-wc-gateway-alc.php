@@ -160,9 +160,7 @@ class WC_Gateway_alc extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
-        if ($this->description) {
-            echo wpautop(wp_kses_post($this->description));
-        }
+        parent::payment_fields();
 
         if ($this->payment_disclaimer) {
             // Instructional: keep the disclaimer editable while ensuring it is emphasised for customers.
